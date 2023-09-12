@@ -1,0 +1,49 @@
+{
+  "state": {
+    "eaton_ups__abm_status": {
+      "1": "Battery Charging",
+      "2": "Battery Discharging",
+      "3": "Battery Floating",
+      "4": "Battery Resting",
+      "5": "unknown",
+      "6": "Battery Disconnected",
+      "7": "Battery Under Test",
+      "8": "Check Battery"
+    },
+    "eaton_ups__input_source": {
+      "1": "Other",
+      "2": "None",
+      "3": "Primary Utility",
+      "4": "Bypass Feed",
+      "5": "secondary Utility",
+      "6": "Generator",
+      "7": "Flywheel",
+      "8": "Fuelcell"
+    },
+    "eaton_ups__input_status": {
+      "1": "Bad",
+      "2": "Good"
+    },
+    "eaton_ups__output_source": {
+      "1": "Other",
+      "2": "None",
+      "3": "Normal",
+      "4": "Bypass",
+      "5": "Battery",
+      "6": "Booster",
+      "7": "Reducer",
+      "8": "Parallel Capacity",
+      "9": "Parallel Redundant",
+      "10": "High Efficiency Mode",
+      "11": "Maintenance Bypass",
+      "12": "ESS Mode"
+    },
+    "eaton_ups__output_status": {
+      "0": "unknow",
+      "1": "Output Not Powered",
+      "2": "Output Not Protected",
+      "3": "Output Protected",
+      "4": "Output Powered No Continuity"
+    }
+  }
+}

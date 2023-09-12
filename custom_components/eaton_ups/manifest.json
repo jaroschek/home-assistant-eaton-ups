@@ -1,0 +1,15 @@
+{
+  "domain": "eaton_ups",
+  "name": "Eaton UPS",
+  "codeowners": ["@jaroschek"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/jaroschek/home-assistant-eaton-ups",
+  "homekit": {},
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/jaroschek/home-assistant-eaton-ups/issues",
+  "requirements": ["pysnmplib==5.0.21"],
+  "ssdp": [],
+  "version": "23.09.12",
+  "zeroconf": []
+}
