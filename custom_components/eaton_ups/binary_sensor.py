@@ -64,7 +64,6 @@ class SnmpBinarySensorEntity(SnmpEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        _LOGGER.debug("Binary sensor native value %s", self._attr_native_value)
         return bool(self._attr_native_value == 1)
 
 

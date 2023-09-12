@@ -1,7 +1,7 @@
 """Support for Eaton UPS sensors."""
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -14,26 +14,22 @@ from homeassistant.const import (
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfPower,
-    UnitOfEnergy,
+    UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from homeassistant.util.dt import get_time_zone
+
 from .const import (
     DOMAIN,
-    SNMP_OID_IDENT_SERIAL_NUMBER,
     SNMP_OID_BATTERY_REMAINING,
     SNMP_OID_BATTERY_VOLTAGE,
     SNMP_OID_BATTERY_CURRENT,
     SNMP_OID_BATTERY_CAPACITY,
     SNMP_OID_BATTERY_ABM_STATUS,
     SNMP_OID_BATTERY_LAST_REPLACED,
-    SNMP_OID_BATTERY_FAILURE,
-    SNMP_OID_BATTERY_NOT_PRESENT,
-    SNMP_OID_BATTERY_AGED,
-    SNMP_OID_BATTERY_LOW_CAPACITY,
     SNMP_OID_INPUT_NUM_PHASES,
-    SNMP_OID_INPUT_PHASE,
     SNMP_OID_INPUT_VOLTAGE,
     SNMP_OID_INPUT_CURRENT,
     SNMP_OID_INPUT_WATTS,
@@ -41,7 +37,6 @@ from .const import (
     SNMP_OID_INPUT_SOURCE,
     SNMP_OID_INPUT_STATUS,
     SNMP_OID_OUTPUT_NUM_PHASES,
-    SNMP_OID_OUTPUT_PHASE,
     SNMP_OID_OUTPUT_VOLTAGE,
     SNMP_OID_OUTPUT_CURRENT,
     SNMP_OID_OUTPUT_WATTS,
@@ -59,6 +54,10 @@ from .const import (
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
 
+import logging
+
+_LOGGER = logging.getLogger(__name__)
+
 PARALLEL_UPDATES = 1
 SCAN_INTERVAL = timedelta(seconds=60)
 
@@ -74,6 +73,8 @@ async def async_setup_entry(
         # SnmpBatteryCurrentSensorEntity(coordinator),
         SnmpBatteryCapacitySensorEntity(coordinator),
         SnmpBatteryAbmStatusSensorEntity(coordinator),
+        SnmpBatteryLastReplacedSensorEntity(coordinator),
+        SnmpBatteryRemainingSensorEntity(coordinator),
         SnmpInputSourceSensorEntity(coordinator),
         SnmpInputStatusSensorEntity(coordinator),
         SnmpOutputSourceSensorEntity(coordinator),
@@ -167,14 +168,44 @@ class SnmpBatteryCapacitySensorEntity(SnmpBatterySensorEntity):
 
 
 class SnmpBatteryAbmStatusSensorEntity(SnmpBatterySensorEntity):
-    """Representation of a Eaton UPS output status sensor."""
+    """Representation of a Eaton UPS battery abm status sensor."""
 
     _attr_device_class = SensorDeviceClass.ENUM
     _attr_state_class = None
     _attr_translation_key = "abm_status"
     _attr_options = [abm_status.value for abm_status in AbmStatus]
+
     _name_suffix = "ABM Status"
     _value_oid = SNMP_OID_BATTERY_ABM_STATUS
+
+
+class SnmpBatteryLastReplacedSensorEntity(SnmpBatterySensorEntity):
+    """Representation of a Eaton UPS battery last replaced sensor."""
+
+    _attr_device_class = SensorDeviceClass.DATE
+    _attr_state_class = None
+
+    _name_suffix = "Last Replaced"
+    _value_oid = SNMP_OID_BATTERY_LAST_REPLACED
+
+    @property
+    def native_value(self) -> date:
+        """Return the value reported by the sensor."""
+        return (
+            datetime.strptime(self._attr_native_value, "%m/%d/%Y")
+            .replace(tzinfo=get_time_zone(self.coordinator.hass.config.time_zone))
+            .date()
+        )
+
+
+class SnmpBatteryRemainingSensorEntity(SnmpBatterySensorEntity):
+    """Representation of a Eaton UPS battery last replaced sensor."""
+
+    _attr_device_class = SensorDeviceClass.DURATION
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+
+    _name_suffix = "Remaining"
+    _value_oid = SNMP_OID_BATTERY_REMAINING
 
 
 class SnmpInputSensorEntity(SnmpSensorEntity):
@@ -223,6 +254,7 @@ class SnmpInputSourceSensorEntity(SnmpInputSensorEntity):
     _attr_state_class = None
     _attr_translation_key = "input_source"
     _attr_options = [input_source.value for input_source in InputSource]
+
     _name_suffix = "Source"
     _value_oid = SNMP_OID_INPUT_SOURCE
 
@@ -234,6 +266,7 @@ class SnmpInputStatusSensorEntity(SnmpInputSensorEntity):
     _attr_state_class = None
     _attr_translation_key = "input_status"
     _attr_options = [input_status.value for input_status in InputStatus]
+
     _name_suffix = "Status"
     _value_oid = SNMP_OID_INPUT_STATUS
 
@@ -293,6 +326,7 @@ class SnmpOutputSourceSensorEntity(SnmpOutputSensorEntity):
     _attr_state_class = None
     _attr_translation_key = "output_source"
     _attr_options = [output_source.value for output_source in OutputSource]
+
     _name_suffix = "Source"
     _value_oid = SNMP_OID_OUTPUT_SOURCE
 
@@ -304,5 +338,6 @@ class SnmpOutputStatusSensorEntity(SnmpOutputSensorEntity):
     _attr_state_class = None
     _attr_translation_key = "output_status"
     _attr_options = [output_status.value for output_status in OutputStatus]
+
     _name_suffix = "Status"
     _value_oid = SNMP_OID_OUTPUT_STATUS
