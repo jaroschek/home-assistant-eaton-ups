@@ -11,6 +11,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
+    EntityCategory,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfPower,
@@ -29,6 +30,7 @@ from .const import (
     SNMP_OID_BATTERY_CAPACITY,
     SNMP_OID_BATTERY_ABM_STATUS,
     SNMP_OID_BATTERY_LAST_REPLACED,
+    SNMP_OID_BATTERY_TEST_STATUS,
     SNMP_OID_INPUT_NUM_PHASES,
     SNMP_OID_INPUT_VOLTAGE,
     SNMP_OID_INPUT_CURRENT,
@@ -45,6 +47,7 @@ from .const import (
     SNMP_OID_OUTPUT_SOURCE,
     SNMP_OID_OUTPUT_STATUS,
     AbmStatus,
+    BatteryTestStatus,
     InputSource,
     InputStatus,
     OutputSource,
@@ -75,6 +78,7 @@ async def async_setup_entry(
         SnmpBatteryAbmStatusSensorEntity(coordinator),
         SnmpBatteryLastReplacedSensorEntity(coordinator),
         SnmpBatteryRemainingSensorEntity(coordinator),
+        SnmpBatteryTestStatusSensorEntity(coordinator),
         SnmpInputSourceSensorEntity(coordinator),
         SnmpInputStatusSensorEntity(coordinator),
         SnmpOutputSourceSensorEntity(coordinator),
@@ -206,6 +210,21 @@ class SnmpBatteryRemainingSensorEntity(SnmpBatterySensorEntity):
 
     _name_suffix = "Remaining"
     _value_oid = SNMP_OID_BATTERY_REMAINING
+
+
+class SnmpBatteryTestStatusSensorEntity(SnmpBatterySensorEntity):
+    """Representation of a Eaton UPS battery test status sensor."""
+
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = None
+    _attr_translation_key = "battery_test_status"
+    _attr_options = [
+        battery_test_status.value for battery_test_status in BatteryTestStatus
+    ]
+
+    _name_suffix = "Test Status"
+    _value_oid = SNMP_OID_BATTERY_TEST_STATUS
 
 
 class SnmpInputSensorEntity(SnmpSensorEntity):

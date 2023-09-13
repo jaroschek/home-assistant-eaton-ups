@@ -65,10 +65,21 @@
           "2": "Battery Discharging",
           "3": "Battery Floating",
           "4": "Battery Resting",
-          "5": "unknown",
+          "5": "Unknown",
           "6": "Battery Disconnected",
           "7": "Battery Under Test",
           "8": "Check Battery"
+        }
+      },
+      "battery_test_status": {
+        "state": {
+          "1": "Unknow",
+          "2": "Passed",
+          "3": "Failed",
+          "4": "In Progress",
+          "5": "Not Supported",
+          "6": "Inhibited",
+          "7": "Scheduled"
         }
       },
       "input_source": {
@@ -107,7 +118,7 @@
       },
       "output_status": {
         "state": {
-          "0": "unknow",
+          "0": "Unknow",
           "1": "Output Not Powered",
           "2": "Output Not Protected",
           "3": "Output Protected",

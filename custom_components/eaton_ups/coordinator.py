@@ -25,6 +25,7 @@ from .const import (
     SNMP_OID_BATTERY_NOT_PRESENT,
     SNMP_OID_BATTERY_AGED,
     SNMP_OID_BATTERY_LOW_CAPACITY,
+    SNMP_OID_BATTERY_TEST_STATUS,
     SNMP_OID_INPUT_NUM_PHASES,
     SNMP_OID_INPUT_PHASE,
     SNMP_OID_INPUT_VOLTAGE,
@@ -85,6 +86,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
                     SNMP_OID_BATTERY_NOT_PRESENT,
                     SNMP_OID_BATTERY_AGED,
                     SNMP_OID_BATTERY_LOW_CAPACITY,
+                    SNMP_OID_BATTERY_TEST_STATUS,
                 ]
             )
 

@@ -72,6 +72,7 @@ SNMP_OID_BATTERY_FAILURE = "1.3.6.1.4.1.534.1.2.7.0"
 SNMP_OID_BATTERY_NOT_PRESENT = "1.3.6.1.4.1.534.1.2.8.0"
 SNMP_OID_BATTERY_AGED = "1.3.6.1.4.1.534.1.2.9.0"
 SNMP_OID_BATTERY_LOW_CAPACITY = "1.3.6.1.4.1.534.1.2.10.0"
+SNMP_OID_BATTERY_TEST_STATUS = "1.3.6.1.4.1.534.1.8.2.0"
 
 SNMP_OID_INPUT_NUM_PHASES = "1.3.6.1.4.1.534.1.3.3.0"
 SNMP_OID_INPUT_PHASE = "1.3.6.1.4.1.534.1.3.4.1.1.index"
@@ -111,6 +112,18 @@ class AbmStatus(Enum):
     batteryDisconnected = 6
     batteryUnderTest = 7
     checkBattery = 8
+
+
+class BatteryTestStatus(Enum):
+    """Values for Battery Test Status."""
+
+    unknow = 1
+    passed = 2
+    failed = 3
+    inProgress = 4
+    notSupported = 5
+    inhibited = 6
+    scheduled = 7
 
 
 class InputSource(Enum):
