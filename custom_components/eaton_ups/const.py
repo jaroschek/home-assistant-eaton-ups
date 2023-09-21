@@ -1,9 +1,8 @@
 """Constants for the Eaton UPS integration."""
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, StrEnum
 
-from homeassistant.backports.enum import StrEnum
 from homeassistant.const import Platform
 
 DOMAIN = "eaton_ups"
