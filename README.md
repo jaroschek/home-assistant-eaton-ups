@@ -1,6 +1,8 @@
 # Eaton UPS integration for Home Assistant
 
-[![Release Builds](https://github.com/jaroschek/home-assistant-eaton-ups/actions/workflows/hassfest.yaml/badge.svg?branch=main&event=push)](https://github.com/jaroschek/home-assistant-eaton-ups/actions/workflows/hassfest.yaml) [![Release Builds](https://github.com/jaroschek/home-assistant-eaton-ups/actions/workflows/hacs.yaml/badge.svg?branch=main&event=push)](https://github.com/jaroschek/home-assistant-eaton-ups/actions/workflows/hacs.yaml)
+[![Version](https://img.shields.io/github/v/release/jaroschek/home-assistant-eaton-ups?label=version)](https://github.com/jaroschek/home-assistant-eaton-ups/releases/latest)
+[![Validate for HACS](https://github.com/jaroschek/home-assistant-eaton-ups/workflows/Validate%20for%20HACS/badge.svg)](https://github.com/jaroschek/home-assistant-eaton-ups/actions/workflows/hacs.yaml)
+[![Validate% with hassfest](https://github.com/jaroschek/home-assistant-eaton-ups/workflows/Validate%20with%20hassfest/badge.svg)](https://github.com/jaroschek/home-assistant-eaton-ups/actions/workflows/hassfest.yaml)
 
 Custom Home Assistant integration for Eaton UPS devices and sensors through SNMP.
 
