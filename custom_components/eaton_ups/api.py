@@ -1,11 +1,11 @@
 """API for Eaton UPS."""
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
+from typing import Any
 
 from pysnmp import hlapi
-
-from homeassistant.config_entries import ConfigEntry
 
 from .const import (
     ATTR_AUTH_KEY,
@@ -44,28 +44,26 @@ _LOGGER = logging.getLogger(__name__)
 class SnmpApi:
     """Provide an api for Eaton UPS."""
 
-    def __init__(self, entry: ConfigEntry) -> None:
+    def __init__(self, data: Mapping[str, Any]) -> None:
         """Init the SnmpApi."""
         self._target = hlapi.UdpTransportTarget(
             (
-                entry.data.get(ATTR_HOST),
-                entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
+                data.get(ATTR_HOST),
+                data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
             ),
             10,
         )
 
-        self._version = entry.data.get(ATTR_VERSION)
+        self._version = data.get(ATTR_VERSION)
         if self._version == SnmpVersion.V1:
-            self._credentials = hlapi.CommunityData(
-                entry.data.get(ATTR_COMMUNITY), mpModel=0
-            )
+            self._credentials = hlapi.CommunityData(data.get(ATTR_COMMUNITY), mpModel=0)
         elif self._version == SnmpVersion.V3:
             self._credentials = hlapi.UsmUserData(
-                entry.data.get(ATTR_USERNAME),
-                entry.data.get(ATTR_AUTH_KEY),
-                entry.data.get(ATTR_PRIV_KEY),
-                AUTH_MAP.get(entry.data.get(ATTR_AUTH_PROTOCOL, AuthProtocol.NO_AUTH)),
-                PRIV_MAP.get(entry.data.get(ATTR_PRIV_PROTOCOL, PrivProtocol.NO_PRIV)),
+                data.get(ATTR_USERNAME),
+                data.get(ATTR_AUTH_KEY),
+                data.get(ATTR_PRIV_KEY),
+                AUTH_MAP.get(data.get(ATTR_AUTH_PROTOCOL, AuthProtocol.NO_AUTH)),
+                PRIV_MAP.get(data.get(ATTR_PRIV_PROTOCOL, PrivProtocol.NO_PRIV)),
             )
 
     @staticmethod
