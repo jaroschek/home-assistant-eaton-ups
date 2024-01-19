@@ -96,21 +96,21 @@ SNMP_OID_OUTPUT_STATUS = "1.3.6.1.4.1.534.1.4.10.0"
 class YesNo(Enum):
     """Mapping for yes/no."""
 
-    Yes = 1
-    No = 2
+    yes = 1
+    no = 2
 
 
 class AbmStatus(Enum):
     """Values for ABM Status."""
 
-    batteryCharging = 1
-    batteryDischarging = 2
-    batteryFloating = 3
-    batteryResting = 4
+    battery_charging = 1
+    battery_discharging = 2
+    battery_floating = 3
+    battery_resting = 4
     unknown = 5
-    batteryDisconnected = 6
-    batteryUnderTest = 7
-    checkBattery = 8
+    battery_disconnected = 6
+    battery_under_test = 7
+    check_battery = 8
 
 
 class BatteryTestStatus(Enum):
@@ -119,8 +119,8 @@ class BatteryTestStatus(Enum):
     unknow = 1
     passed = 2
     failed = 3
-    inProgress = 4
-    notSupported = 5
+    in_progress = 4
+    not_supported = 5
     inhibited = 6
     scheduled = 7
 
@@ -130,9 +130,9 @@ class InputSource(Enum):
 
     other = 1
     none = 2
-    primaryUtility = 3
-    bypassFeed = 4
-    secondaryUtility = 5
+    primary_utility = 3
+    bypass_feed = 4
+    secondary_utility = 5
     generator = 6
     flywheel = 7
     fuelcell = 8
@@ -155,18 +155,18 @@ class OutputSource(Enum):
     battery = 5
     booster = 6
     reducer = 7
-    parallelCapacity = 8
-    parallelRedundant = 9
-    highEfficiencyMode = 10
-    maintenanceBypass = 11
-    essMode = 12
+    parallel_capacity = 8
+    parallel_redundant = 9
+    high_efficiency_mode = 10
+    maintenance_bypass = 11
+    ess_mode = 12
 
 
 class OutputStatus(Enum):
     """Values for Output Status."""
 
     unknow = 0
-    outputNotPowered = 1
-    outputNotProtected = 2
-    outputProtected = 3
-    outputPoweredNoContinuity = 4
+    output_pot_powered = 1
+    output_not_protected = 2
+    output_protected = 3
+    output_powered_no_continuity = 4
