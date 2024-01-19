@@ -30,6 +30,7 @@ from .const import (
     ATTR_VERSION,
     DOMAIN,
     SNMP_OID_IDENT_PRODUCT_NAME,
+    SNMP_OID_IDENT_SERIAL_NUMBER,
     SNMP_PORT_DEFAULT,
     AuthProtocol,
     PrivProtocol,
@@ -153,7 +154,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.data.update(v1_input)
 
         api = SnmpApi(self.data)
-        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME])
+        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME, SNMP_OID_IDENT_SERIAL_NUMBER])
+
+        await self.async_set_unique_id(
+            result.get(SNMP_OID_IDENT_SERIAL_NUMBER), raise_on_progress=False
+        )
+        self._abort_if_unique_id_configured()
 
         return self.async_create_entry(
             title=result.get(SNMP_OID_IDENT_PRODUCT_NAME), data=self.data
@@ -169,7 +175,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.data.update(v3_input)
 
         api = SnmpApi(self.data)
-        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME])
+        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME, SNMP_OID_IDENT_SERIAL_NUMBER])
+
+        await self.async_set_unique_id(
+            result.get(SNMP_OID_IDENT_SERIAL_NUMBER), raise_on_progress=False
+        )
+        self._abort_if_unique_id_configured()
 
         return self.async_create_entry(
             title=result.get(SNMP_OID_IDENT_PRODUCT_NAME), data=self.data
@@ -221,7 +232,7 @@ class OptionsFlow(config_entries.OptionsFlow):
         self.data.update(v1_input)
 
         api = SnmpApi(self.config_entry.data)
-        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME])
+        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME, SNMP_OID_IDENT_SERIAL_NUMBER])
 
         self.hass.config_entries.async_update_entry(
             self.config_entry,
@@ -241,7 +252,7 @@ class OptionsFlow(config_entries.OptionsFlow):
         self.data.update(v3_input)
 
         api = SnmpApi(self.config_entry.data)
-        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME])
+        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME, SNMP_OID_IDENT_SERIAL_NUMBER])
 
         self.hass.config_entries.async_update_entry(
             self.config_entry,
