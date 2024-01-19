@@ -8,19 +8,17 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, PERCENTAGE
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-
 from .const import (
     DOMAIN,
-    SNMP_OID_BATTERY_FAILURE,
-    SNMP_OID_BATTERY_NOT_PRESENT,
     SNMP_OID_BATTERY_AGED,
+    SNMP_OID_BATTERY_FAILURE,
     SNMP_OID_BATTERY_LOW_CAPACITY,
+    SNMP_OID_BATTERY_NOT_PRESENT,
 )
-
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
 
