@@ -59,7 +59,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
             name=DOMAIN,
             update_interval=timedelta(seconds=60),
         )
-        self._api = SnmpApi(entry)
+        self._api = SnmpApi(entry.data)
 
     def _update_data(self) -> dict:
         """Fetch the latest data from the source."""
