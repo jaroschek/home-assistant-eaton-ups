@@ -1,25 +1,19 @@
-"""Definition of base Eaton UPS Entity"""
+"""Definition of base Eaton UPS Entity."""
 from __future__ import annotations
 
+from homeassistant.const import ATTR_BATTERY_LEVEL
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-from homeassistant.const import (
-    ATTR_BATTERY_CHARGING,
-    ATTR_BATTERY_LEVEL,
-)
 
 from .const import (
     DOMAIN,
     MANUFACTURER,
+    SNMP_OID_BATTERY_CAPACITY,
     SNMP_OID_IDENT_FIRMWARE_VERSION,
     SNMP_OID_IDENT_PART_NUMBER,
     SNMP_OID_IDENT_PRODUCT_NAME,
     SNMP_OID_IDENT_SERIAL_NUMBER,
-    SNMP_OID_BATTERY_CAPACITY,
-    SNMP_OID_BATTERY_ABM_STATUS,
 )
-
 from .coordinator import SnmpCoordinator
 
 

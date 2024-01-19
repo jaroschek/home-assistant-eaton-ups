@@ -15,20 +15,20 @@ from homeassistant.helpers.selector import (
     SelectSelectorConfig,
     SelectSelectorMode,
 )
-
 from homeassistant.helpers.typing import ConfigType
+
 from .const import (
-    DOMAIN,
-    ATTR_NAME,
-    ATTR_HOST,
-    ATTR_PORT,
-    ATTR_VERSION,
-    ATTR_COMMUNITY,
-    ATTR_USERNAME,
     ATTR_AUTH_KEY,
     ATTR_AUTH_PROTOCOL,
+    ATTR_COMMUNITY,
+    ATTR_HOST,
+    ATTR_NAME,
+    ATTR_PORT,
     ATTR_PRIV_KEY,
     ATTR_PRIV_PROTOCOL,
+    ATTR_USERNAME,
+    ATTR_VERSION,
+    DOMAIN,
     SNMP_PORT_DEFAULT,
     AuthProtocol,
     PrivProtocol,
@@ -37,7 +37,7 @@ from .const import (
 
 
 def get_host_schema_config(data: ConfigType) -> Schema:
-    """Return the host schema for config flow"""
+    """Return the host schema for config flow."""
     return vol.Schema(
         {
             vol.Required(ATTR_NAME, default=data.get(ATTR_NAME)): cv.string,
@@ -58,7 +58,7 @@ def get_host_schema_config(data: ConfigType) -> Schema:
 
 
 def get_host_schema_options(data: ConfigType) -> Schema:
-    """Return the host schema for options flow"""
+    """Return the host schema for options flow."""
     return vol.Schema(
         {
             vol.Required(ATTR_HOST, default=data.get(ATTR_HOST)): cv.string,
@@ -78,7 +78,7 @@ def get_host_schema_options(data: ConfigType) -> Schema:
 
 
 def get_v1_schema(data: ConfigType) -> Schema:
-    """Return the v1 schema"""
+    """Return the v1 schema."""
     return vol.Schema(
         {
             vol.Required(ATTR_COMMUNITY, default=data.get(ATTR_COMMUNITY)): cv.string,
@@ -87,7 +87,7 @@ def get_v1_schema(data: ConfigType) -> Schema:
 
 
 def get_v3_schema(data: ConfigType) -> Schema:
-    """Return the v3 schema"""
+    """Return the v3 schema."""
     return vol.Schema(
         {
             vol.Required(ATTR_USERNAME, default=data.get(ATTR_USERNAME)): cv.string,

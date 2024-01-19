@@ -1,22 +1,22 @@
 """API for Eaton UPS."""
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
+import logging
 
 from pysnmp import hlapi
 
-import logging
+from homeassistant.config_entries import ConfigEntry
 
 from .const import (
-    ATTR_HOST,
-    ATTR_PORT,
-    ATTR_VERSION,
-    ATTR_COMMUNITY,
-    ATTR_USERNAME,
     ATTR_AUTH_KEY,
     ATTR_AUTH_PROTOCOL,
+    ATTR_COMMUNITY,
+    ATTR_HOST,
+    ATTR_PORT,
     ATTR_PRIV_KEY,
     ATTR_PRIV_PROTOCOL,
+    ATTR_USERNAME,
+    ATTR_VERSION,
     SNMP_PORT_DEFAULT,
     AuthProtocol,
     PrivProtocol,
@@ -45,7 +45,7 @@ class SnmpApi:
     """Provide an api for Eaton UPS."""
 
     def __init__(self, entry: ConfigEntry) -> None:
-        """Init the SnmpApi"""
+        """Init the SnmpApi."""
         self._target = hlapi.UdpTransportTarget(
             (
                 entry.data.get(ATTR_HOST),
@@ -118,7 +118,7 @@ class SnmpApi:
 
     @staticmethod
     def cast(value):
-        """Cast returned value into correct type"""
+        """Cast returned value into correct type."""
         try:
             return int(value)
         except (ValueError, TypeError):
@@ -135,7 +135,7 @@ class SnmpApi:
     def fetch(iterator, count) -> list:
         """Fetch data from iterator."""
         result = []
-        for i in range(count):
+        for _i in range(count):
             try:
                 error_indication, error_status, error_index, var_binds = next(iterator)
                 if not error_indication and not error_status:
@@ -145,7 +145,7 @@ class SnmpApi:
                     result.append(items)
                 else:
                     raise RuntimeError(
-                        "Got SNMP error: {0} {1} {2}".format(
+                        "Got SNMP error: {} {} {}".format(
                             error_indication, error_status, error_index
                         )
                     )
