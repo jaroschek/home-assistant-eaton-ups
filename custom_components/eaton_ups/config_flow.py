@@ -17,20 +17,18 @@ from homeassistant.helpers.selector import (
 )
 from homeassistant.helpers.typing import ConfigType
 
-from .api import SnmpApi
 from .const import (
     ATTR_AUTH_KEY,
     ATTR_AUTH_PROTOCOL,
     ATTR_COMMUNITY,
     ATTR_HOST,
+    ATTR_NAME,
     ATTR_PORT,
     ATTR_PRIV_KEY,
     ATTR_PRIV_PROTOCOL,
     ATTR_USERNAME,
     ATTR_VERSION,
     DOMAIN,
-    SNMP_OID_IDENT_PRODUCT_NAME,
-    SNMP_OID_IDENT_SERIAL_NUMBER,
     SNMP_PORT_DEFAULT,
     AuthProtocol,
     PrivProtocol,
@@ -42,6 +40,7 @@ def get_host_schema_config(data: ConfigType) -> Schema:
     """Return the host schema for config flow."""
     return vol.Schema(
         {
+            vol.Required(ATTR_NAME, default=data.get(ATTR_NAME)): cv.string,
             vol.Required(ATTR_HOST, default=data.get(ATTR_HOST)): cv.string,
             vol.Required(
                 ATTR_PORT, default=data.get(ATTR_PORT, SNMP_PORT_DEFAULT)
@@ -153,17 +152,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         self.data.update(v1_input)
 
-        api = SnmpApi(self.data)
-        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME, SNMP_OID_IDENT_SERIAL_NUMBER])
-
-        await self.async_set_unique_id(
-            result.get(SNMP_OID_IDENT_SERIAL_NUMBER), raise_on_progress=False
-        )
-        self._abort_if_unique_id_configured()
-
-        return self.async_create_entry(
-            title=result.get(SNMP_OID_IDENT_PRODUCT_NAME), data=self.data
-        )
+        return self.async_create_entry(title=self.data[ATTR_NAME], data=self.data)
 
     async def async_step_v3(self, v3_input: ConfigType | None = None) -> FlowResult:
         """Handle the v3 step."""
@@ -174,17 +163,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         self.data.update(v3_input)
 
-        api = SnmpApi(self.data)
-        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME, SNMP_OID_IDENT_SERIAL_NUMBER])
-
-        await self.async_set_unique_id(
-            result.get(SNMP_OID_IDENT_SERIAL_NUMBER), raise_on_progress=False
-        )
-        self._abort_if_unique_id_configured()
-
-        return self.async_create_entry(
-            title=result.get(SNMP_OID_IDENT_PRODUCT_NAME), data=self.data
-        )
+        return self.async_create_entry(title=self.data[ATTR_NAME], data=self.data)
 
     @staticmethod
     @callback
@@ -231,14 +210,7 @@ class OptionsFlow(config_entries.OptionsFlow):
 
         self.data.update(v1_input)
 
-        api = SnmpApi(self.config_entry.data)
-        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME, SNMP_OID_IDENT_SERIAL_NUMBER])
-
-        self.hass.config_entries.async_update_entry(
-            self.config_entry,
-            title=result.get(SNMP_OID_IDENT_PRODUCT_NAME),
-            data=self.data,
-        )
+        self.hass.config_entries.async_update_entry(self.config_entry, data=self.data)
 
         return self.async_create_entry(title="", data={})
 
@@ -251,14 +223,7 @@ class OptionsFlow(config_entries.OptionsFlow):
 
         self.data.update(v3_input)
 
-        api = SnmpApi(self.config_entry.data)
-        result = api.get([SNMP_OID_IDENT_PRODUCT_NAME, SNMP_OID_IDENT_SERIAL_NUMBER])
-
-        self.hass.config_entries.async_update_entry(
-            self.config_entry,
-            title=result.get(SNMP_OID_IDENT_PRODUCT_NAME),
-            data=self.data,
-        )
+        self.hass.config_entries.async_update_entry(self.config_entry, data=self.data)
 
         return self.async_create_entry(title="", data={})
 

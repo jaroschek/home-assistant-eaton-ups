@@ -14,6 +14,7 @@ PLATFORMS = [
     Platform.SENSOR,
 ]
 
+ATTR_NAME = "name"
 ATTR_HOST = "host"
 ATTR_PORT = "port"
 ATTR_VERSION = "version"
