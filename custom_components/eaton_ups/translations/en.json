@@ -11,6 +11,7 @@
     "step": {
       "host": {
         "data": {
+          "name": "Name",
           "host": "Host",
           "port": "Port",
           "version": "SNMP Version"
