@@ -61,10 +61,10 @@ class SnmpCoordinator(DataUpdateCoordinator):
         )
         self._api = SnmpApi(entry.data)
 
-    def _update_data(self) -> dict:
+    async def _update_data(self) -> dict:
         """Fetch the latest data from the source."""
         try:
-            data = self._api.get(
+            data = await self._api.get(
                 [
                     SNMP_OID_IDENT_PRODUCT_NAME,
                     SNMP_OID_IDENT_PART_NUMBER,
@@ -97,7 +97,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
 
             input_count = self.data.get(SNMP_OID_INPUT_NUM_PHASES, 0)
             if input_count > 0:
-                for result in self._api.get_bulk(
+                for result in await self._api.get_bulk(
                     [
                         SNMP_OID_INPUT_PHASE.replace("index", ""),
                         SNMP_OID_INPUT_VOLTAGE.replace("index", ""),
@@ -111,7 +111,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
 
             output_count = self.data.get(SNMP_OID_OUTPUT_NUM_PHASES, 0)
             if output_count > 0:
-                for result in self._api.get_bulk(
+                for result in await self._api.get_bulk(
                     [
                         SNMP_OID_OUTPUT_PHASE.replace("index", ""),
                         SNMP_OID_OUTPUT_VOLTAGE.replace("index", ""),
@@ -131,4 +131,4 @@ class SnmpCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict:
         """Fetch the latest data from the source."""
-        return await self.hass.async_add_executor_job(self._update_data)
+        return await self._update_data()
