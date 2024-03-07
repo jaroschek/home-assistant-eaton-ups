@@ -5,7 +5,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
-from pysnmp import hlapi
+import pysnmp.hlapi.asyncio as hlapi
 
 from .const import (
     ATTR_AUTH_KEY,
@@ -74,19 +74,33 @@ class SnmpApi:
             object_types.append(hlapi.ObjectType(hlapi.ObjectIdentity(oid)))
         return object_types
 
-    def get(self, oids) -> list:
+    async def get(self, oids) -> dict:
         """Get data for given OIDs in a single call."""
         _LOGGER.debug("Get OID(s) %s", oids)
-        iterator = hlapi.getCmd(
+        result = []
+        error_indication, error_status, error_index, var_binds = await hlapi.getCmd(
             hlapi.SnmpEngine(),
             self._credentials,
             self._target,
             hlapi.ContextData(),
             *__class__.construct_object_types(oids),
         )
-        return __class__.fetch(iterator, 1)[0]
 
-    def get_bulk(
+        if not error_indication and not error_status:
+            items = {}
+            for var_bind in var_binds:
+                items[str(var_bind[0])] = __class__.cast(var_bind[1])
+            result.append(items)
+        else:
+            raise RuntimeError(
+                "Got SNMP error: {} {} {}".format(
+                    error_indication, error_status, error_index
+                )
+            )
+
+        return result[0]
+
+    async def get_bulk(
         self,
         oids,
         count,
@@ -94,25 +108,44 @@ class SnmpApi:
     ) -> list:
         """Get table data for given OIDs with defined rown count."""
         _LOGGER.debug("Get %s bulk OID(s) %s", count, oids)
-        iterator = hlapi.bulkCmd(
-            hlapi.SnmpEngine(),
-            self._credentials,
-            self._target,
-            hlapi.ContextData(),
-            start_from,
-            count,
-            *__class__.construct_object_types(oids),
-        )
-        return __class__.fetch(iterator, count)
+        result = []
+        var_binds = __class__.construct_object_types(oids)
+        for _i in range(count):
+            error_indication, error_status, error_index, var_bind_table = await hlapi.bulkCmd(
+                hlapi.SnmpEngine(),
+                self._credentials,
+                self._target,
+                hlapi.ContextData(),
+                start_from,
+                count,
+                *var_binds,
+            )
 
-    def get_bulk_auto(
+            if not error_indication and not error_indication:
+                items = {}
+                for var_bind_row in var_bind_table:
+                    for var_bind in var_bind_row:
+                        items[str(var_bind[0])] = __class__.cast(var_bind[1])
+                result.append(items)
+            else:
+                raise RuntimeError(
+                    "Got SNMP error: {} {} {}".format(
+                        error_indication, error_status, error_index
+                    )
+                )
+
+            var_binds = var_bind_table[-1]
+
+        return result
+
+    async def get_bulk_auto(
         self,
         oids,
         count_oid,
         start_from=1,
-    ):
+    ) -> list:
         """Get table data for given OIDs with determined rown count."""
-        return self.get_bulk(oids, self.get([count_oid])[count_oid], start_from)
+        return await self.get_bulk(oids, await self.get([count_oid])[count_oid], start_from)
 
     @staticmethod
     def cast(value):
@@ -128,25 +161,3 @@ class SnmpApi:
                 except (ValueError, TypeError):
                     pass
         return value
-
-    @staticmethod
-    def fetch(iterator, count) -> list:
-        """Fetch data from iterator."""
-        result = []
-        for _i in range(count):
-            try:
-                error_indication, error_status, error_index, var_binds = next(iterator)
-                if not error_indication and not error_status:
-                    items = {}
-                    for var_bind in var_binds:
-                        items[str(var_bind[0])] = __class__.cast(var_bind[1])
-                    result.append(items)
-                else:
-                    raise RuntimeError(
-                        "Got SNMP error: {} {} {}".format(
-                            error_indication, error_status, error_index
-                        )
-                    )
-            except StopIteration:
-                break
-        return result

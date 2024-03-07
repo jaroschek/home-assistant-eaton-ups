@@ -8,7 +8,7 @@
   "homekit": {},
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/jaroschek/home-assistant-eaton-ups/issues",
-  "requirements": ["pysnmplib==5.0.21"],
+  "requirements": ["pysnmp-lextudio==6.0.2"],
   "ssdp": [],
   "version": "1.1.1",
   "zeroconf": []
