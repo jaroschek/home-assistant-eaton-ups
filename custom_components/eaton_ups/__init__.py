@@ -1,6 +1,8 @@
 """The Eaton UPS integration."""
+
 from __future__ import annotations
 
+from homeassistant.components.snmp import async_get_snmp_engine
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
@@ -18,7 +20,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Eaton UPS from a config entry."""
-    coordinator = SnmpCoordinator(hass=hass, entry=entry)
+    snmpEngine = await async_get_snmp_engine(hass)
+    coordinator = SnmpCoordinator(hass=hass, entry=entry, snmpEngine=snmpEngine)
     await coordinator.async_config_entry_first_refresh()
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
