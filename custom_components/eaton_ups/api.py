@@ -6,6 +6,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
+from pysnmp.error import PySnmpError
 import pysnmp.hlapi.asyncio as hlapi
 from pysnmp.hlapi.asyncio import SnmpEngine
 
@@ -50,13 +51,26 @@ class SnmpApi:
         """Init the SnmpApi."""
         self._snmpEngine = snmpEngine
 
-        self._target = hlapi.UdpTransportTarget(
-            (
-                data.get(ATTR_HOST),
-                data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
-            ),
-            10,
-        )
+        try:
+            self._target = hlapi.UdpTransportTarget(
+                (
+                    data.get(ATTR_HOST),
+                    data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
+                ),
+                10,
+            )
+        except PySnmpError:
+            try:
+                self._target = hlapi.Udp6TransportTarget(
+                    (
+                        data.get(ATTR_HOST),
+                        data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
+                    ),
+                    10,
+                )
+            except PySnmpError as err:
+                _LOGGER.error("Invalid SNMP host: %s", err)
+                return
 
         self._version = data.get(ATTR_VERSION)
         if self._version == SnmpVersion.V1:
