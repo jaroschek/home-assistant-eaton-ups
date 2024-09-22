@@ -1,4 +1,5 @@
 """Support for Eaton UPS sensors."""
+
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
@@ -190,13 +191,16 @@ class SnmpBatteryLastReplacedSensorEntity(SnmpBatterySensorEntity):
     _value_oid = SNMP_OID_BATTERY_LAST_REPLACED
 
     @property
-    def native_value(self) -> date:
+    def native_value(self) -> date | None:
         """Return the value reported by the sensor."""
-        return (
-            datetime.strptime(self._attr_native_value, "%m/%d/%Y")
-            .replace(tzinfo=get_time_zone(self.coordinator.hass.config.time_zone))
-            .date()
-        )
+        try:
+            return (
+                datetime.strptime(self._attr_native_value, "%m/%d/%Y")
+                .replace(tzinfo=get_time_zone(self.coordinator.hass.config.time_zone))
+                .date()
+            )
+        except ValueError:
+            return None
 
 
 class SnmpBatteryRemainingSensorEntity(SnmpBatterySensorEntity):

@@ -16,8 +16,8 @@ from .const import (
     DOMAIN,
     SNMP_OID_BATTERY_ABM_STATUS,
     SNMP_OID_BATTERY_AGED,
-    # SNMP_OID_BATTERY_CURRENT,
     SNMP_OID_BATTERY_CAPACITY,
+    SNMP_OID_BATTERY_CURRENT,
     SNMP_OID_BATTERY_FAILURE,
     SNMP_OID_BATTERY_LAST_REPLACED,
     SNMP_OID_BATTERY_LOW_CAPACITY,
@@ -66,34 +66,34 @@ class SnmpCoordinator(DataUpdateCoordinator):
         )
         self._api = SnmpApi(entry.data, snmpEngine)
 
+        self._baseOIDs = [
+            SNMP_OID_IDENT_PRODUCT_NAME,
+            SNMP_OID_IDENT_PART_NUMBER,
+            SNMP_OID_IDENT_SERIAL_NUMBER,
+            SNMP_OID_IDENT_FIRMWARE_VERSION,
+            SNMP_OID_INPUT_NUM_PHASES,
+            SNMP_OID_INPUT_SOURCE,
+            SNMP_OID_INPUT_STATUS,
+            SNMP_OID_OUTPUT_NUM_PHASES,
+            SNMP_OID_OUTPUT_SOURCE,
+            SNMP_OID_OUTPUT_STATUS,
+            SNMP_OID_BATTERY_REMAINING,
+            SNMP_OID_BATTERY_VOLTAGE,
+            SNMP_OID_BATTERY_CURRENT,
+            SNMP_OID_BATTERY_CAPACITY,
+            SNMP_OID_BATTERY_ABM_STATUS,
+            SNMP_OID_BATTERY_LAST_REPLACED,
+            SNMP_OID_BATTERY_FAILURE,
+            SNMP_OID_BATTERY_NOT_PRESENT,
+            SNMP_OID_BATTERY_AGED,
+            SNMP_OID_BATTERY_LOW_CAPACITY,
+            SNMP_OID_BATTERY_TEST_STATUS,
+        ]
+
     async def _update_data(self) -> dict:
         """Fetch the latest data from the source."""
         try:
-            data = await self._api.get(
-                [
-                    SNMP_OID_IDENT_PRODUCT_NAME,
-                    SNMP_OID_IDENT_PART_NUMBER,
-                    SNMP_OID_IDENT_SERIAL_NUMBER,
-                    SNMP_OID_IDENT_FIRMWARE_VERSION,
-                    SNMP_OID_INPUT_NUM_PHASES,
-                    SNMP_OID_INPUT_SOURCE,
-                    SNMP_OID_INPUT_STATUS,
-                    SNMP_OID_OUTPUT_NUM_PHASES,
-                    SNMP_OID_OUTPUT_SOURCE,
-                    SNMP_OID_OUTPUT_STATUS,
-                    SNMP_OID_BATTERY_REMAINING,
-                    SNMP_OID_BATTERY_VOLTAGE,
-                    # SNMP_OID_BATTERY_CURRENT,
-                    SNMP_OID_BATTERY_CAPACITY,
-                    SNMP_OID_BATTERY_ABM_STATUS,
-                    SNMP_OID_BATTERY_LAST_REPLACED,
-                    SNMP_OID_BATTERY_FAILURE,
-                    SNMP_OID_BATTERY_NOT_PRESENT,
-                    SNMP_OID_BATTERY_AGED,
-                    SNMP_OID_BATTERY_LOW_CAPACITY,
-                    SNMP_OID_BATTERY_TEST_STATUS,
-                ]
-            )
+            data = await self._api.get(self._baseOIDs)
 
             if self.data is None:
                 self.data = data

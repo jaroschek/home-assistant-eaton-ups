@@ -1,4 +1,5 @@
 """Definition of base Eaton UPS Entity."""
+
 from __future__ import annotations
 
 from homeassistant.const import ATTR_BATTERY_LEVEL
@@ -40,23 +41,29 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
         else:
             self._attr_name = f"{device_name} {self._name_prefix} {self._name_suffix}"
 
-        serial_number = self.coordinator.data.get(SNMP_OID_IDENT_SERIAL_NUMBER)
         self._value_oid = self._value_oid.replace("index", str(index))
-        self._attr_unique_id = f"{DOMAIN}_{serial_number}_{self._value_oid}"
+        self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._value_oid}"
+
+    @property
+    def identifier(self):
+        """Return the device identifier."""
+        return self.coordinator.data.get(
+            SNMP_OID_IDENT_SERIAL_NUMBER,
+            self.coordinator.data.get(
+                SNMP_OID_IDENT_PART_NUMBER,
+                self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME),
+            ),
+        )
 
     @property
     def device_info(self):
         """Return the device_info of the device."""
         return DeviceInfo(
-            identifiers={
-                (
-                    DOMAIN,
-                    self.coordinator.data.get(SNMP_OID_IDENT_SERIAL_NUMBER),
-                )
-            },
+            identifiers={(DOMAIN, self.identifier)},
             manufacturer=MANUFACTURER,
             model=self.coordinator.data.get(SNMP_OID_IDENT_PART_NUMBER),
             name=self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME),
+            serial_number=self.coordinator.data.get(SNMP_OID_IDENT_SERIAL_NUMBER),
             sw_version=self.coordinator.data.get(SNMP_OID_IDENT_FIRMWARE_VERSION),
         )
 
