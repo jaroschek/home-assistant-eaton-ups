@@ -11,6 +11,6 @@
   "issue_tracker": "https://github.com/jaroschek/home-assistant-eaton-ups/issues",
   "requirements": ["pysnmp==6.2.5"],
   "ssdp": [],
-  "version": "1.2.1-rc2",
+  "version": "1.2.1",
   "zeroconf": []
 }
