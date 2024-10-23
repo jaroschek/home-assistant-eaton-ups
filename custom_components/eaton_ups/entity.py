@@ -7,6 +7,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
+    ATTR_HOST,
     DOMAIN,
     MANUFACTURER,
     SNMP_OID_BATTERY_CAPACITY,
@@ -54,13 +55,7 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
             SNMP_OID_IDENT_SERIAL_NUMBER,
             self.coordinator.data.get(
                 SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
-                self.coordinator.data.get(
-                    SNMP_OID_IDENT_PART_NUMBER,
-                    self.coordinator.data.get(
-                        SNMP_OID_IDENT_PRODUCT_NAME,
-                        self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME_XUPS),
-                    ),
-                ),
+                self.coordinator.config_entry.data.get(ATTR_HOST)
             ),
         )
 
