@@ -26,9 +26,12 @@ from .const import (
     SNMP_OID_BATTERY_TEST_STATUS,
     SNMP_OID_BATTERY_VOLTAGE,
     SNMP_OID_IDENT_FIRMWARE_VERSION,
+    SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS,
     SNMP_OID_IDENT_PART_NUMBER,
     SNMP_OID_IDENT_PRODUCT_NAME,
+    SNMP_OID_IDENT_PRODUCT_NAME_XUPS,
     SNMP_OID_IDENT_SERIAL_NUMBER,
+    SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
     SNMP_OID_INPUT_CURRENT,
     SNMP_OID_INPUT_NAME,
     SNMP_OID_INPUT_NUM_PHASES,
@@ -68,9 +71,12 @@ class SnmpCoordinator(DataUpdateCoordinator):
 
         self._baseOIDs = [
             SNMP_OID_IDENT_PRODUCT_NAME,
+            SNMP_OID_IDENT_PRODUCT_NAME_XUPS,
             SNMP_OID_IDENT_PART_NUMBER,
             SNMP_OID_IDENT_SERIAL_NUMBER,
+            SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
             SNMP_OID_IDENT_FIRMWARE_VERSION,
+            SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS,
             SNMP_OID_INPUT_NUM_PHASES,
             SNMP_OID_INPUT_SOURCE,
             SNMP_OID_INPUT_STATUS,
@@ -129,7 +135,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
                 ):
                     self.data.update(result)
 
-            return self.data
+            return self.data  # noqa: TRY300
 
         except RuntimeError as err:
             raise UpdateFailed(err) from err

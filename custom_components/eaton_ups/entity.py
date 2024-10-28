@@ -7,13 +7,17 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
+    ATTR_HOST,
     DOMAIN,
     MANUFACTURER,
     SNMP_OID_BATTERY_CAPACITY,
     SNMP_OID_IDENT_FIRMWARE_VERSION,
+    SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS,
     SNMP_OID_IDENT_PART_NUMBER,
     SNMP_OID_IDENT_PRODUCT_NAME,
+    SNMP_OID_IDENT_PRODUCT_NAME_XUPS,
     SNMP_OID_IDENT_SERIAL_NUMBER,
+    SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
 )
 from .coordinator import SnmpCoordinator
 
@@ -50,8 +54,8 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
         return self.coordinator.data.get(
             SNMP_OID_IDENT_SERIAL_NUMBER,
             self.coordinator.data.get(
-                SNMP_OID_IDENT_PART_NUMBER,
-                self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME),
+                SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
+                self.coordinator.config_entry.data.get(ATTR_HOST)
             ),
         )
 
@@ -62,9 +66,18 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
             identifiers={(DOMAIN, self.identifier)},
             manufacturer=MANUFACTURER,
             model=self.coordinator.data.get(SNMP_OID_IDENT_PART_NUMBER),
-            name=self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME),
-            serial_number=self.coordinator.data.get(SNMP_OID_IDENT_SERIAL_NUMBER),
-            sw_version=self.coordinator.data.get(SNMP_OID_IDENT_FIRMWARE_VERSION),
+            name=self.coordinator.data.get(
+                SNMP_OID_IDENT_PRODUCT_NAME,
+                self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME_XUPS),
+            ),
+            serial_number=self.coordinator.data.get(
+                SNMP_OID_IDENT_SERIAL_NUMBER,
+                self.coordinator.data.get(SNMP_OID_IDENT_SERIAL_NUMBER_XUPS),
+            ),
+            sw_version=self.coordinator.data.get(
+                SNMP_OID_IDENT_FIRMWARE_VERSION,
+                self.coordinator.data.get(SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS),
+            ),
         )
 
     @property
