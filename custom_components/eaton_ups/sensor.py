@@ -55,7 +55,7 @@ from .const import (
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 SCAN_INTERVAL = timedelta(seconds=60)
 
 

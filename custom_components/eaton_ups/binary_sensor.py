@@ -20,6 +20,8 @@ from .const import (
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
 
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
