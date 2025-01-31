@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
-import logging
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -24,7 +23,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util.dt import get_time_zone
 
 from .const import (
-    DOMAIN,
     SNMP_OID_BATTERY_ABM_STATUS,
     SNMP_OID_BATTERY_CAPACITY,
     SNMP_OID_BATTERY_CURRENT,
@@ -57,9 +55,7 @@ from .const import (
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
 
-_LOGGER = logging.getLogger(__name__)
-
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 SCAN_INTERVAL = timedelta(seconds=60)
 
 
@@ -68,7 +64,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensors."""
 
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entities: list[SensorEntity] = [
         SnmpBatteryVoltageSensorEntity(coordinator),
         # SnmpBatteryCurrentSensorEntity(coordinator),

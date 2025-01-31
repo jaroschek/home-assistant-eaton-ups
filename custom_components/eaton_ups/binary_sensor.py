@@ -1,7 +1,6 @@
 """Support for Eaton UPS binary sensors."""
-from __future__ import annotations
 
-import logging
+from __future__ import annotations
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -13,7 +12,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    DOMAIN,
     SNMP_OID_BATTERY_AGED,
     SNMP_OID_BATTERY_FAILURE,
     SNMP_OID_BATTERY_LOW_CAPACITY,
@@ -22,7 +20,7 @@ from .const import (
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
 
-_LOGGER = logging.getLogger(__name__)
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
@@ -30,7 +28,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensors."""
 
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entities: list[BinarySensorEntity] = [
         SnmpBatteryFailureSensorEntity(coordinator),
         SnmpBatteryNotPresentSensorEntity(coordinator),
