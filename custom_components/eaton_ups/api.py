@@ -120,7 +120,7 @@ class SnmpApi:
                 items[str(var_bind[0])] = __class__.cast(var_bind[1])
             return items
 
-        return []
+        return {}
 
     async def get_bulk(
         self,
