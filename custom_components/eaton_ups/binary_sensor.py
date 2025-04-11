@@ -17,8 +17,6 @@ from .const import (
     SNMP_OID_BATTERY_FAILURE,
     SNMP_OID_BATTERY_LOW_CAPACITY,
     SNMP_OID_BATTERY_NOT_PRESENT,
-    SNMP_OID_IDENT_PRODUCT_NAME,
-    SNMP_OID_IDENT_PRODUCT_NAME_XUPS,
 )
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
