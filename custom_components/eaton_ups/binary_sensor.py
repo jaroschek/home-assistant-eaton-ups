@@ -71,7 +71,7 @@ class SnmpBinarySensorEntity(SnmpEntity, BinarySensorEntity):
             device_name = self.device_info["name"]
             persistent_notification.create(
                 self.coordinator.hass,
-                f"{self._name_prefix} {self._name_suffix} detected for {device_name} ({self.identifier})",
+                f"{self._name_prefix} {self._name_suffix} detected for {device_name}",
                 title=self._attr_name,
                 notification_id=self._attr_unique_id,
             )
