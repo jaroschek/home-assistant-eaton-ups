@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from homeassistant.components import persistent_notification
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
+from homeassistant.const import STATE_ON, EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -49,11 +50,13 @@ class SnmpBinarySensorEntity(SnmpEntity, BinarySensorEntity):
         """Initialize a Eaton UPS sensor."""
         super().__init__(coordinator, index)
         self._attr_native_value = self.coordinator.data.get(self._value_oid)
+        self.update_atert()
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_native_value = self.coordinator.data.get(self._value_oid)
+        self.update_atert()
 
         super().async_write_ha_state()
 
@@ -61,6 +64,19 @@ class SnmpBinarySensorEntity(SnmpEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
         return bool(self._attr_native_value == 1)
+
+    def update_atert(self) -> None:
+        """Update alert for binary sensor."""
+        if self.state == STATE_ON:
+            device_name = self.device_info["name"]
+            persistent_notification.create(
+                self.coordinator.hass,
+                f"{self._name_prefix} {self._name_suffix} detected for {device_name} ({self.identifier})",
+                title=self._attr_name,
+                notification_id=self._attr_unique_id,
+            )
+        else:
+            persistent_notification.dismiss(self.coordinator.hass, self._attr_unique_id)
 
 
 class SnmpBatteryBinarySensorEntity(SnmpBinarySensorEntity):
