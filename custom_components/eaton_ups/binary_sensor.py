@@ -70,14 +70,11 @@ class SnmpBinarySensorEntity(SnmpEntity, BinarySensorEntity):
     def update_atert(self) -> None:
         """Update alert for binary sensor."""
         if self.state == STATE_ON:
-            device_name = self.coordinator.data.get(
-                SNMP_OID_IDENT_PRODUCT_NAME,
-                self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME_XUPS),
-            )
+            device_name = self.device_info["name"]
             persistent_notification.create(
                 self.coordinator.hass,
-                self._attr_name,
-                title=device_name,
+                f"{self._name_prefix} {self._name_suffix} detected for {device_name} ({self.identifier})",
+                title=self._attr_name,
                 notification_id=self._attr_unique_id,
             )
         else:
