@@ -1,8 +1,12 @@
 {
   "domain": "eaton_ups",
   "name": "Eaton UPS",
-  "after_dependencies": ["snmp"],
-  "codeowners": ["@jaroschek"],
+  "after_dependencies": [
+    "snmp"
+  ],
+  "codeowners": [
+    "@jaroschek"
+  ],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/jaroschek/home-assistant-eaton-ups",
