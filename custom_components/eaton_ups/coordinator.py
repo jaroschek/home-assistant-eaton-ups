@@ -32,6 +32,7 @@ from .const import (
     SNMP_OID_IDENT_PRODUCT_NAME_XUPS,
     SNMP_OID_IDENT_SERIAL_NUMBER,
     SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
+    SNMP_OID_IDENT_SYSTEM_NAME,
     SNMP_OID_INPUT_CURRENT,
     SNMP_OID_INPUT_NAME,
     SNMP_OID_INPUT_NUM_PHASES,
@@ -70,6 +71,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
         self._api = SnmpApi(entry.data, snmpEngine)
 
         self._baseOIDs = [
+            SNMP_OID_IDENT_SYSTEM_NAME,
             SNMP_OID_IDENT_PRODUCT_NAME,
             SNMP_OID_IDENT_PRODUCT_NAME_XUPS,
             SNMP_OID_IDENT_PART_NUMBER,

@@ -18,6 +18,7 @@ from .const import (
     SNMP_OID_IDENT_PRODUCT_NAME_XUPS,
     SNMP_OID_IDENT_SERIAL_NUMBER,
     SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
+    SNMP_OID_IDENT_SYSTEM_NAME,
 )
 from .coordinator import SnmpCoordinator
 
@@ -55,7 +56,7 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
             SNMP_OID_IDENT_SERIAL_NUMBER,
             self.coordinator.data.get(
                 SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
-                self.coordinator.config_entry.data.get(ATTR_HOST)
+                self.coordinator.config_entry.data.get(ATTR_HOST),
             ),
         )
 
@@ -67,8 +68,11 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
             manufacturer=MANUFACTURER,
             model=self.coordinator.data.get(SNMP_OID_IDENT_PART_NUMBER),
             name=self.coordinator.data.get(
-                SNMP_OID_IDENT_PRODUCT_NAME,
-                self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME_XUPS),
+                SNMP_OID_IDENT_SYSTEM_NAME,
+                self.coordinator.data.get(
+                    SNMP_OID_IDENT_PRODUCT_NAME,
+                    self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME_XUPS),
+                ),
             ),
             serial_number=self.coordinator.data.get(
                 SNMP_OID_IDENT_SERIAL_NUMBER,
