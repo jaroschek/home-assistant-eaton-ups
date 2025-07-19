@@ -146,6 +146,7 @@ class InputSource(Enum):
 class InputStatus(Enum):
     """Values for Inoput Status."""
 
+    unknown = 0
     bad = 1
     good = 2
 
