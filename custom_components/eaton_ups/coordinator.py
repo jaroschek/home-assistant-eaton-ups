@@ -58,9 +58,7 @@ _LOGGER = logging.getLogger(__name__)
 class SnmpCoordinator(DataUpdateCoordinator):
     """Data update coordinator."""
 
-    def __init__(
-        self, hass: HomeAssistant, entry: ConfigEntry, snmpEngine: SnmpEngine
-    ) -> None:
+    def __init__(self, hass: HomeAssistant, api: SnmpApi) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
@@ -68,7 +66,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
             name=DOMAIN,
             update_interval=timedelta(seconds=60),
         )
-        self._api = SnmpApi(entry.data, snmpEngine)
+        self._api = api
 
         self._baseOIDs = [
             SNMP_OID_IDENT_SYSTEM_NAME,
