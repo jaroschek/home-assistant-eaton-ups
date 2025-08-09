@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 
+from .api import SnmpApi
 from .const import PLATFORMS
 from .coordinator import SnmpCoordinator
 
@@ -14,7 +15,9 @@ from .coordinator import SnmpCoordinator
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Eaton UPS from a config entry."""
     snmpEngine = await async_get_snmp_engine(hass)
-    coordinator = SnmpCoordinator(hass=hass, entry=entry, snmpEngine=snmpEngine)
+    api = SnmpApi(snmpEngine)
+    await api.setup(entry)
+    coordinator = SnmpCoordinator(hass=hass, api=api)
     await coordinator.async_config_entry_first_refresh()
 
     entry.runtime_data = coordinator
