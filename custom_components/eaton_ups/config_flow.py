@@ -1,4 +1,5 @@
 """Config flow for Eaton UPS integration."""
+
 from __future__ import annotations
 
 import voluptuous as vol
@@ -179,7 +180,6 @@ class OptionsFlow(config_entries.OptionsFlow):
 
     def __init__(self, entry: ConfigEntry) -> None:
         """Initialize Eaton UPS options flow."""
-        self.config_entry = entry
         self.data = dict(entry.data)
 
     async def async_step_init(self, user_input: ConfigType | None = None) -> FlowResult:
