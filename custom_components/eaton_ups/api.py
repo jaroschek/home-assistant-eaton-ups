@@ -27,18 +27,20 @@ from .const import (
 )
 
 AUTH_MAP = {
-    AuthProtocol.NO_AUTH: hlapi.usmNoAuthProtocol,
-    AuthProtocol.SHA: hlapi.usmHMACSHAAuthProtocol,
-    AuthProtocol.SHA_256: hlapi.usmHMAC192SHA256AuthProtocol,
-    AuthProtocol.SHA_384: hlapi.usmHMAC256SHA384AuthProtocol,
-    AuthProtocol.SHA_512: hlapi.usmHMAC384SHA512AuthProtocol,
+    AuthProtocol.NO_AUTH: hlapi.USM_AUTH_NONE,
+    AuthProtocol.MD5: hlapi.USM_AUTH_HMAC96_MD5,
+    AuthProtocol.SHA: hlapi.USM_AUTH_HMAC96_SHA,
+    AuthProtocol.SHA_224: hlapi.USM_AUTH_HMAC128_SHA224,
+    AuthProtocol.SHA_256: hlapi.USM_AUTH_HMAC192_SHA256,
+    AuthProtocol.SHA_384: hlapi.USM_AUTH_HMAC256_SHA384,
+    AuthProtocol.SHA_512: hlapi.USM_AUTH_HMAC384_SHA512,
 }
 
 PRIV_MAP = {
-    PrivProtocol.NO_PRIV: hlapi.usmNoPrivProtocol,
-    PrivProtocol.AES: hlapi.usmAesCfb128Protocol,
-    PrivProtocol.AES_192: hlapi.usmAesCfb192Protocol,
-    PrivProtocol.AES_256: hlapi.usmAesCfb256Protocol,
+    PrivProtocol.NO_PRIV: hlapi.USM_PRIV_NONE,
+    PrivProtocol.AES: hlapi.USM_PRIV_CFB128_AES,
+    PrivProtocol.AES_192: hlapi.USM_PRIV_CFB192_AES,
+    PrivProtocol.AES_256: hlapi.USM_PRIV_CFB256_AES,
 }
 
 _LOGGER = logging.getLogger(__name__)
@@ -95,10 +97,7 @@ class SnmpApi:
     @staticmethod
     def construct_object_types(list_of_oids):
         """Prepare desired objects from list of OIDs."""
-        object_types = []
-        for oid in list_of_oids:
-            object_types.append(hlapi.ObjectType(hlapi.ObjectIdentity(oid)))
-        return object_types
+        return [hlapi.ObjectType(hlapi.ObjectIdentity(oid)) for oid in list_of_oids]
 
     async def get(self, oids) -> dict:
         """Get data for given OIDs in a single call."""
@@ -191,12 +190,12 @@ class SnmpApi:
         """Cast returned value into correct type."""
         try:
             return int(value)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             try:
                 return float(value)
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 try:
                     return str(value)
-                except (ValueError, TypeError):
+                except ValueError, TypeError:
                     pass
         return value

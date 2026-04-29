@@ -5,9 +5,6 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
-from pysnmp.hlapi.asyncio import SnmpEngine
-
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 

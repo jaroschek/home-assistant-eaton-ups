@@ -38,7 +38,9 @@ class AuthProtocol(StrEnum):
     """Enum with snmp auth protocol options."""
 
     NO_AUTH = "no auth"
+    MD5 = "md5"
     SHA = "sha"
+    SHA_224 = "sha224"
     SHA_256 = "sha256"
     SHA_384 = "sha384"
     SHA_512 = "sha512"
