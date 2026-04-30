@@ -15,6 +15,9 @@ from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
 )
 from homeassistant.helpers.typing import ConfigType
 
@@ -92,7 +95,6 @@ def get_v3_schema(data: ConfigType) -> Schema:
     return vol.Schema(
         {
             vol.Required(ATTR_USERNAME, default=data.get(ATTR_USERNAME)): cv.string,
-            vol.Optional(ATTR_AUTH_KEY): cv.string,
             vol.Required(
                 ATTR_AUTH_PROTOCOL,
                 default=data.get(ATTR_AUTH_PROTOCOL) or AuthProtocol.NO_AUTH,
@@ -102,7 +104,9 @@ def get_v3_schema(data: ConfigType) -> Schema:
                     mode=SelectSelectorMode.DROPDOWN,
                 )
             ),
-            vol.Optional(ATTR_PRIV_KEY): cv.string,
+            vol.Optional(ATTR_AUTH_KEY, default=data.get(ATTR_AUTH_KEY)): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.PASSWORD)
+            ),
             vol.Required(
                 ATTR_PRIV_PROTOCOL,
                 default=data.get(ATTR_PRIV_PROTOCOL) or PrivProtocol.NO_PRIV,
@@ -111,6 +115,9 @@ def get_v3_schema(data: ConfigType) -> Schema:
                     options=[e.value for e in PrivProtocol],
                     mode=SelectSelectorMode.DROPDOWN,
                 )
+            ),
+            vol.Optional(ATTR_PRIV_KEY, default=data.get(ATTR_PRIV_KEY)): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.PASSWORD)
             ),
         }
     )
