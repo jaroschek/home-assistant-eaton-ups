@@ -15,6 +15,7 @@ from homeassistant.const import (
     EntityCategory,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
+    UnitOfEnergy,
     UnitOfPower,
     UnitOfTime,
 )
@@ -37,6 +38,7 @@ from .const import (
     SNMP_OID_INPUT_STATUS,
     SNMP_OID_INPUT_VOLTAGE,
     SNMP_OID_INPUT_WATTS,
+    SNMP_OID_OUTPUT_CUMULATIVE_ENERGY,
     SNMP_OID_OUTPUT_CURRENT,
     SNMP_OID_OUTPUT_LOAD,
     SNMP_OID_OUTPUT_NAME,
@@ -76,6 +78,7 @@ async def async_setup_entry(
         SnmpInputSourceSensorEntity(coordinator),
         SnmpInputStatusSensorEntity(coordinator),
         SnmpOutputSourceSensorEntity(coordinator),
+        SnmpOutputCumulativeEnergySensorEntity(coordinator),
         SnmpOutputStatusSensorEntity(coordinator),
     ]
 
@@ -345,6 +348,17 @@ class SnmpOutputSourceSensorEntity(SnmpOutputSensorEntity):
 
     _name_suffix = "Source"
     _value_oid = SNMP_OID_OUTPUT_SOURCE
+
+
+class SnmpOutputCumulativeEnergySensorEntity(SnmpOutputSensorEntity):
+    """Representation of a Eaton UPS output cumulative energy sensor."""
+
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+
+    _name_suffix = "Energy"
+    _value_oid = SNMP_OID_OUTPUT_CUMULATIVE_ENERGY
 
 
 class SnmpOutputStatusSensorEntity(SnmpOutputSensorEntity):

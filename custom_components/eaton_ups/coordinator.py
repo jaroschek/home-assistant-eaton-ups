@@ -47,6 +47,7 @@ from .const import (
     SNMP_OID_OUTPUT_STATUS,
     SNMP_OID_OUTPUT_VOLTAGE,
     SNMP_OID_OUTPUT_WATTS,
+    SNMP_OID_OUTPUT_CUMULATIVE_ENERGY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -79,6 +80,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
             SNMP_OID_INPUT_STATUS,
             SNMP_OID_OUTPUT_NUM_PHASES,
             SNMP_OID_OUTPUT_SOURCE,
+            SNMP_OID_OUTPUT_CUMULATIVE_ENERGY,
             SNMP_OID_OUTPUT_STATUS,
             SNMP_OID_BATTERY_REMAINING,
             SNMP_OID_BATTERY_VOLTAGE,
