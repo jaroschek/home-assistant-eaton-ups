@@ -89,7 +89,7 @@ class SnmpApi:
             self._credentials = hlapi.UsmUserData(
                 entry.data.get(ATTR_USERNAME),
                 entry.data.get(ATTR_AUTH_KEY),
-                entry.data.get(ATTR_PRIV_KEY),
+                entry.data.get(ATTR_PRIV_KEY) or None,
                 AUTH_MAP.get(entry.data.get(ATTR_AUTH_PROTOCOL, AuthProtocol.NO_AUTH)),
                 PRIV_MAP.get(entry.data.get(ATTR_PRIV_PROTOCOL, PrivProtocol.NO_PRIV)),
             )
