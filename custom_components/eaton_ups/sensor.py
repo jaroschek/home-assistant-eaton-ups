@@ -114,22 +114,29 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
     def __init__(self, coordinator: SnmpCoordinator, index: str = "") -> None:
         """Initialize a Eaton UPS sensor."""
         super().__init__(coordinator, index)
-        self._attr_native_value = self.coordinator.data.get(
-            self._value_oid, self._default_value
-        )
-        if self._multiplier is not None:
-            self._attr_native_value *= self._multiplier
+        self._attr_native_value = self._read_value()
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_native_value = self.coordinator.data.get(
-            self._value_oid, self._default_value
-        )
-        if self._multiplier is not None:
-            self._attr_native_value *= self._multiplier
-
+        self._attr_native_value = self._read_value()
         super().async_write_ha_state()
+
+    def _read_value(self):
+        """Read this sensor's value from the coordinator.
+
+        An OID can come back as an empty string when the UPS has no
+        reading for it yet (observed on the output cumulative energy
+        OID); treat that the same as a missing OID rather than passing
+        '' through as native_value, which HA's numeric sensor state
+        machinery rejects.
+        """
+        value = self.coordinator.data.get(self._value_oid, self._default_value)
+        if value == "":
+            return None
+        if self._multiplier is not None:
+            value *= self._multiplier
+        return value
 
 
 class SnmpBatterySensorEntity(SnmpSensorEntity):
@@ -198,7 +205,7 @@ class SnmpBatteryLastReplacedSensorEntity(SnmpBatterySensorEntity):
                 .replace(tzinfo=get_time_zone(self.coordinator.hass.config.time_zone))
                 .date()
             )
-        except ValueError:
+        except (ValueError, TypeError):
             return None
 
 
