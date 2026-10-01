@@ -1,9 +1,6 @@
 """The Eaton UPS integration."""
 
-from __future__ import annotations
-
-from pysnmp.hlapi.asyncio import SnmpEngine
-
+from homeassistant.components.snmp.util import async_get_snmp_engine
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
@@ -15,7 +12,7 @@ from .coordinator import SnmpCoordinator
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Eaton UPS from a config entry."""
-    snmp_engine = await hass.async_add_executor_job(SnmpEngine)
+    snmp_engine = await async_get_snmp_engine(hass)
     api = SnmpApi(snmp_engine)
     await api.setup(entry)
     coordinator = SnmpCoordinator(hass=hass, api=api)
