@@ -6,7 +6,7 @@ import voluptuous as vol
 from voluptuous.schema_builder import Schema
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, OptionsFlowWithReload
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
@@ -182,7 +182,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlow(config_entry)
 
 
-class OptionsFlow(config_entries.OptionsFlow):
+class OptionsFlow(OptionsFlowWithReload):
     """Handle a options flow for Eaton UPS."""
 
     def __init__(self, entry: ConfigEntry) -> None:
@@ -219,7 +219,7 @@ class OptionsFlow(config_entries.OptionsFlow):
 
         self.hass.config_entries.async_update_entry(self.config_entry, data=self.data)
 
-        return self.async_create_entry(title="", data={})
+        return self.async_create_entry(title="", data=self.data)
 
     async def async_step_v3(self, v3_input: ConfigType | None = None) -> FlowResult:
         """Handle the v3 step."""
@@ -232,7 +232,7 @@ class OptionsFlow(config_entries.OptionsFlow):
 
         self.hass.config_entries.async_update_entry(self.config_entry, data=self.data)
 
-        return self.async_create_entry(title="", data={})
+        return self.async_create_entry(title="", data=self.data)
 
 
 class CannotConnect(HomeAssistantError):

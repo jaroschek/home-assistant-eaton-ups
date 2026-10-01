@@ -49,44 +49,49 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
         self._value_oid = self._value_oid.replace("index", str(index))
         self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._value_oid}"
 
+    def get_data(self, oid: str, default=None):
+        """Fetch data from the coordinator, using the fallback for missing values."""
+        value = self.coordinator.data.get(oid)
+        return default if value in (None, "") else value
+
     @property
-    def identifier(self):
+    def identifier(self) -> str:
         """Return the device identifier."""
-        return self.coordinator.data.get(
-            SNMP_OID_IDENT_SERIAL_NUMBER,
-            self.coordinator.data.get(
-                SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
-                self.coordinator.config_entry.data.get(ATTR_HOST),
-            ),
+        return str(
+            self.get_data(
+                SNMP_OID_IDENT_SERIAL_NUMBER,
+                self.get_data(
+                    SNMP_OID_IDENT_SERIAL_NUMBER_XUPS,
+                    self.coordinator.config_entry.data[ATTR_HOST],
+                ),
+            )
         )
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return the device_info of the device."""
         return DeviceInfo(
             identifiers={(DOMAIN, self.identifier)},
             manufacturer=MANUFACTURER,
-            model=self.coordinator.data.get(SNMP_OID_IDENT_PART_NUMBER),
-            name=self.coordinator.data.get(
+            model=self.get_data(SNMP_OID_IDENT_PART_NUMBER),
+            name=self.get_data(
                 SNMP_OID_IDENT_SYSTEM_NAME,
-                self.coordinator.data.get(
+                self.get_data(
                     SNMP_OID_IDENT_PRODUCT_NAME,
-                    self.coordinator.data.get(SNMP_OID_IDENT_PRODUCT_NAME_XUPS),
+                    self.get_data(SNMP_OID_IDENT_PRODUCT_NAME_XUPS),
                 ),
             ),
-            serial_number=self.coordinator.data.get(
+            serial_number=self.get_data(
                 SNMP_OID_IDENT_SERIAL_NUMBER,
-                self.coordinator.data.get(SNMP_OID_IDENT_SERIAL_NUMBER_XUPS),
+                self.get_data(SNMP_OID_IDENT_SERIAL_NUMBER_XUPS),
             ),
-            sw_version=self.coordinator.data.get(
+            sw_version=self.get_data(
                 SNMP_OID_IDENT_FIRMWARE_VERSION,
-                self.coordinator.data.get(SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS),
+                self.get_data(SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS),
             ),
         )
 
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        return {
-            ATTR_BATTERY_LEVEL: self.coordinator.data.get(SNMP_OID_BATTERY_CAPACITY)
-        }
+        return {ATTR_BATTERY_LEVEL: self.get_data(SNMP_OID_BATTERY_CAPACITY)}
