@@ -5,6 +5,9 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
+from pysnmp.error import PySnmpError
+
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -38,6 +41,7 @@ from .const import (
     SNMP_OID_INPUT_STATUS,
     SNMP_OID_INPUT_VOLTAGE,
     SNMP_OID_INPUT_WATTS,
+    SNMP_OID_OUTPUT_CUMULATIVE_ENERGY,
     SNMP_OID_OUTPUT_CURRENT,
     SNMP_OID_OUTPUT_LOAD,
     SNMP_OID_OUTPUT_NAME,
@@ -47,7 +51,6 @@ from .const import (
     SNMP_OID_OUTPUT_STATUS,
     SNMP_OID_OUTPUT_VOLTAGE,
     SNMP_OID_OUTPUT_WATTS,
-    SNMP_OID_OUTPUT_CUMULATIVE_ENERGY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,17 +59,18 @@ _LOGGER = logging.getLogger(__name__)
 class SnmpCoordinator(DataUpdateCoordinator):
     """Data update coordinator."""
 
-    def __init__(self, hass: HomeAssistant, api: SnmpApi) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, api: SnmpApi) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
+            config_entry=entry,
             update_interval=timedelta(seconds=60),
         )
         self._api = api
 
-        self._baseOIDs = [
+        self._base_oids = [
             SNMP_OID_IDENT_SYSTEM_NAME,
             SNMP_OID_IDENT_PRODUCT_NAME,
             SNMP_OID_IDENT_PRODUCT_NAME_XUPS,
@@ -98,14 +102,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
     async def _update_data(self) -> dict:
         """Fetch the latest data from the source."""
         try:
-            data = await self._api.get(self._baseOIDs)
+            data = await self._api.get(self._base_oids)
 
-            if self.data is None:
-                self.data = data
-            else:
-                self.data.update(data)
-
-            input_count = self.data.get(SNMP_OID_INPUT_NUM_PHASES, 0)
+            input_count = data.get(SNMP_OID_INPUT_NUM_PHASES, 0)
             if input_count > 0:
                 for result in await self._api.get_bulk(
                     [
@@ -117,9 +116,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
                     ],
                     input_count,
                 ):
-                    self.data.update(result)
+                    data.update(result)
 
-            output_count = self.data.get(SNMP_OID_OUTPUT_NUM_PHASES, 0)
+            output_count = data.get(SNMP_OID_OUTPUT_NUM_PHASES, 0)
             if output_count > 0:
                 for result in await self._api.get_bulk(
                     [
@@ -132,12 +131,11 @@ class SnmpCoordinator(DataUpdateCoordinator):
                     ],
                     output_count,
                 ):
-                    self.data.update(result)
+                    data.update(result)
 
-            return self.data  # noqa: TRY300
-
-        except RuntimeError as err:
+        except (RuntimeError, PySnmpError) as err:
             raise UpdateFailed(err) from err
+        return data
 
     async def _async_update_data(self) -> dict:
         """Fetch the latest data from the source."""
