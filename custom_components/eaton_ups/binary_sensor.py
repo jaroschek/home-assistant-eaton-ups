@@ -61,12 +61,16 @@ class SnmpBinarySensorEntity(SnmpEntity, BinarySensorEntity):
         super().async_write_ha_state()
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
-        return bool(self._attr_native_value == 1)
+        if self._attr_native_value is None:
+            return None
+        return self._attr_native_value == 1
 
     def update_atert(self) -> None:
         """Update alert for binary sensor."""
+        if self._attr_native_value is None:
+            return
         if self.state == STATE_ON:
             device_name = self.device_info["name"]
             persistent_notification.create(
