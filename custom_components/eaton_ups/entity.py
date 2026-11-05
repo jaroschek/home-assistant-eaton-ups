@@ -54,6 +54,11 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
         value = self.coordinator.data.get(oid)
         return default if value in (None, "") else value
 
+    def get_text(self, oid: str, default: str | None = None) -> str | None:
+        """Fetch data as text, because SNMP values can be cast to numbers."""
+        value = self.get_data(oid, default)
+        return None if value is None else str(value)
+
     @property
     def identifier(self) -> str:
         """Return the device identifier."""
@@ -73,7 +78,7 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
         return DeviceInfo(
             identifiers={(DOMAIN, self.identifier)},
             manufacturer=MANUFACTURER,
-            model=self.get_data(SNMP_OID_IDENT_PART_NUMBER),
+            model=self.get_text(SNMP_OID_IDENT_PART_NUMBER),
             name=self.get_data(
                 SNMP_OID_IDENT_SYSTEM_NAME,
                 self.get_data(
@@ -81,13 +86,13 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
                     self.get_data(SNMP_OID_IDENT_PRODUCT_NAME_XUPS),
                 ),
             ),
-            serial_number=self.get_data(
+            serial_number=self.get_text(
                 SNMP_OID_IDENT_SERIAL_NUMBER,
-                self.get_data(SNMP_OID_IDENT_SERIAL_NUMBER_XUPS),
+                self.get_text(SNMP_OID_IDENT_SERIAL_NUMBER_XUPS),
             ),
-            sw_version=self.get_data(
+            sw_version=self.get_text(
                 SNMP_OID_IDENT_FIRMWARE_VERSION,
-                self.get_data(SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS),
+                self.get_text(SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS),
             ),
         )
 
