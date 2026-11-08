@@ -25,9 +25,7 @@ from homeassistant.util.dt import get_time_zone
 
 from .const import (
     ALARM_NAMES,
-    SNMP_OID_ALARM_DESCR,
-    SNMP_OID_ALARM_DESCR_XUPS,
-    SNMP_OID_ALARMS_PRESENT,
+    SNMP_OID_ALARMS_PRESENT_XUPS,
     SNMP_OID_BATTERY_ABM_STATUS,
     SNMP_OID_BATTERY_CAPACITY,
     SNMP_OID_BATTERY_CURRENT,
@@ -60,7 +58,7 @@ from .const import (
     OutputStatus,
 )
 from .coordinator import SnmpCoordinator
-from .entity import SnmpEntity
+from .entity import SnmpEntity, active_alarm_oids
 
 PARALLEL_UPDATES = 0
 SCAN_INTERVAL = timedelta(seconds=60)
@@ -85,7 +83,6 @@ async def async_setup_entry(
         SnmpOutputSourceSensorEntity(coordinator),
         SnmpOutputCumulativeEnergySensorEntity(coordinator),
         SnmpOutputStatusSensorEntity(coordinator),
-        SnmpAlarmsPresentSensorEntity(coordinator),
         SnmpActiveAlarmsSensorEntity(coordinator),
         SnmpConfigLowBatteryTimeSensorEntity(coordinator),
     ]
@@ -110,27 +107,14 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-def decode_alarms(data: dict, descr_oids: tuple[str, ...]) -> list[str]:
+def decode_alarms(data: dict) -> list[str]:
     """Return the readable names of the active alarms found in the SNMP data.
 
-    Each alarm row holds the OID of a well-known alarm. Unknown OIDs are kept as
-    the raw OID so no alarm is hidden, and repeats across the two tables are
-    reported once.
+    Unknown alarm OIDs are kept as the raw OID so no alarm is hidden.
     """
-    names: list[str] = []
-    for descr_oid in descr_oids:
-        prefix = descr_oid.replace("index", "")
-        # Row order follows the OID index, not string order, so sort numerically.
-        rows = sorted(
-            (oid for oid in data if oid.startswith(prefix)),
-            key=lambda oid: int(oid[len(prefix) :]),
-        )
-        for oid in rows:
-            alarm_oid = str(data[oid]).lstrip(".")
-            name = ALARM_NAMES.get(alarm_oid, alarm_oid)
-            if name not in names:
-                names.append(name)
-    return names
+    names = [ALARM_NAMES.get(oid, oid) for oid in active_alarm_oids(data)]
+    # The two MIBs name the same condition with different OIDs; list it once.
+    return list(dict.fromkeys(names))
 
 
 class SnmpSensorEntity(SnmpEntity, SensorEntity):
@@ -402,16 +386,6 @@ class SnmpOutputStatusSensorEntity(SnmpOutputSensorEntity):
     _value_oid = SNMP_OID_OUTPUT_STATUS
 
 
-class SnmpAlarmsPresentSensorEntity(SnmpSensorEntity):
-    """Representation of a Eaton UPS alarms present sensor."""
-
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    _name_prefix = "Alarms"
-    _name_suffix = "Present"
-    _value_oid = SNMP_OID_ALARMS_PRESENT
-
-
 class SnmpActiveAlarmsSensorEntity(SnmpSensorEntity):
     """Representation of the decoded active alarms of a Eaton UPS."""
 
@@ -420,7 +394,7 @@ class SnmpActiveAlarmsSensorEntity(SnmpSensorEntity):
     _name_prefix = "Active"
     _name_suffix = "Alarms"
     # Only used for the unique id; the value comes from the alarm table rows.
-    _value_oid = SNMP_OID_ALARM_DESCR
+    _value_oid = SNMP_OID_ALARMS_PRESENT_XUPS
 
     def _read_value(self) -> int:
         """Return the number of distinct active alarms."""
@@ -429,9 +403,7 @@ class SnmpActiveAlarmsSensorEntity(SnmpSensorEntity):
     @property
     def _alarms(self) -> list[str]:
         """Return the names of the active alarms."""
-        return decode_alarms(
-            self.coordinator.data, (SNMP_OID_ALARM_DESCR, SNMP_OID_ALARM_DESCR_XUPS)
-        )
+        return decode_alarms(self.coordinator.data)
 
     @property
     def extra_state_attributes(self):

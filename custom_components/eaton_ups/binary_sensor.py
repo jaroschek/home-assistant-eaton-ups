@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    ALARMS_INFORMATIONAL,
     SNMP_OID_ALARMS_PRESENT,
     SNMP_OID_ALARMS_PRESENT_XUPS,
     SNMP_OID_BATTERY_AGED,
@@ -21,7 +22,7 @@ from .const import (
     SNMP_OID_BATTERY_NOT_PRESENT,
 )
 from .coordinator import SnmpCoordinator
-from .entity import SnmpEntity
+from .entity import SnmpEntity, active_alarm_oids
 
 PARALLEL_UPDATES = 0
 
@@ -130,20 +131,21 @@ class SnmpAlarmActiveSensorEntity(SnmpBinarySensorEntity):
     _value_oid = SNMP_OID_ALARMS_PRESENT
 
     def update_atert(self) -> None:
-        """Combine both alarm counts, then update the alert."""
-        counts = [
-            value
+        """Derive the state from the alarm rows, then update the alert."""
+        counts_reported = any(
+            isinstance(self.coordinator.data.get(oid), int)
             for oid in (SNMP_OID_ALARMS_PRESENT, SNMP_OID_ALARMS_PRESENT_XUPS)
-            if isinstance(value := self.coordinator.data.get(oid), int)
-        ]
-        # A device may implement only one of the two alarm tables, so unknown
-        # means neither count was reported.
-        self._attr_native_value = sum(counts) if counts else None
+        )
+        # Unknown means neither alarm table is supported. Informational rows
+        # (normal states and events) are not faults; unknown alarm OIDs count as
+        # faults so a real alarm is never hidden.
+        if not counts_reported:
+            self._attr_native_value = None
+        else:
+            self._attr_native_value = int(
+                any(
+                    oid not in ALARMS_INFORMATIONAL
+                    for oid in active_alarm_oids(self.coordinator.data)
+                )
+            )
         super().update_atert()
-
-    @property
-    def is_on(self) -> bool | None:
-        """Return true if any alarm is active."""
-        if self._attr_native_value is None:
-            return None
-        return self._attr_native_value > 0

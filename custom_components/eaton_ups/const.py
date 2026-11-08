@@ -173,6 +173,26 @@ ALARM_NAMES: dict[str, str] = {
     "1.3.6.1.4.1.534.1.7.30": "Loss Of Redundancy",
 }
 
+# Alarm rows that report a state or event rather than a fault. The UPS lists
+# them in its alarm table during normal operation (for example "On Inverter"
+# is normal on a double-conversion UPS), so they must not raise a problem.
+# Anything not listed here, including unknown OIDs, counts as a fault.
+ALARMS_INFORMATIONAL: frozenset[str] = frozenset(
+    {
+        # Normal state of a double-conversion UPS.
+        "1.3.6.1.4.1.534.1.7.17",  # On Inverter
+        # Recovery events, not faults.
+        "1.3.6.1.4.1.534.1.7.5",  # Utility Power Restored
+        "1.3.6.1.4.1.534.1.7.6",  # Return From Low Battery
+        # Bookkeeping events about the alarm table itself.
+        "1.3.6.1.4.1.534.1.7.21",  # Alarm Entry Added
+        "1.3.6.1.4.1.534.1.7.22",  # Alarm Entry Removed
+        # A self-test running is expected activity.
+        "1.3.6.1.4.1.534.1.7.28",  # Test In Progress
+        "1.3.6.1.2.1.33.1.6.3.24",  # Test In Progress (UPS-MIB)
+    }
+)
+
 
 class YesNo(Enum):
     """Mapping for yes/no."""

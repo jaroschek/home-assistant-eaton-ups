@@ -15,7 +15,6 @@ from custom_components.eaton_ups.const import (
 from custom_components.eaton_ups.coordinator import SnmpCoordinator
 from custom_components.eaton_ups.sensor import (
     SnmpActiveAlarmsSensorEntity,
-    SnmpAlarmsPresentSensorEntity,
     decode_alarms,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -23,7 +22,6 @@ from homeassistant.core import HomeAssistant
 
 STD_ROW = SNMP_OID_ALARM_DESCR.replace("index", "")
 XUPS_ROW = SNMP_OID_ALARM_DESCR_XUPS.replace("index", "")
-DESCRS = (SNMP_OID_ALARM_DESCR, SNMP_OID_ALARM_DESCR_XUPS)
 
 
 def test_decode_known_and_unknown_alarms() -> None:
@@ -34,7 +32,7 @@ def test_decode_known_and_unknown_alarms() -> None:
         f"{XUPS_ROW}2": ".1.3.6.1.4.1.534.1.7.6",
         f"{XUPS_ROW}3": "1.3.6.1.4.1.534.1.7.999",
     }
-    assert decode_alarms(data, DESCRS) == [
+    assert decode_alarms(data) == [
         "Low Battery",
         "Return From Low Battery",
         "1.3.6.1.4.1.534.1.7.999",
@@ -48,12 +46,16 @@ def test_decode_deduplicates_across_tables() -> None:
         f"{STD_ROW}1": "1.3.6.1.2.1.33.1.6.3.2",
         f"{XUPS_ROW}1": "1.3.6.1.4.1.534.1.7.3",
     }
-    assert decode_alarms(data, DESCRS) == ["On Battery"]
+    assert decode_alarms(data) == ["On Battery"]
 
 
 def test_decode_no_alarms() -> None:
     """An empty table decodes to no alarms."""
-    assert decode_alarms({SNMP_OID_ALARMS_PRESENT: 0}, DESCRS) == []
+    assert decode_alarms({SNMP_OID_ALARMS_PRESENT: 0}) == []
+
+
+FAULT = "1.3.6.1.4.1.534.1.7.8"
+INFO = "1.3.6.1.4.1.534.1.7.17"
 
 
 @pytest.mark.parametrize(
@@ -61,19 +63,43 @@ def test_decode_no_alarms() -> None:
     [
         pytest.param({}, None, id="unsupported"),
         pytest.param({SNMP_OID_ALARMS_PRESENT: 0}, False, id="none"),
-        pytest.param({SNMP_OID_ALARMS_PRESENT: 2}, True, id="standard"),
-        pytest.param({SNMP_OID_ALARMS_PRESENT_XUPS: 1}, True, id="xups-only"),
         pytest.param(
-            {SNMP_OID_ALARMS_PRESENT: 0, SNMP_OID_ALARMS_PRESENT_XUPS: 0},
+            {
+                SNMP_OID_ALARMS_PRESENT_XUPS: 2,
+                f"{XUPS_ROW}1": INFO,
+                f"{XUPS_ROW}2": "1.3.6.1.4.1.534.1.7.6",
+            },
             False,
-            id="both-clear",
+            id="informational-only",
+        ),
+        pytest.param(
+            {
+                SNMP_OID_ALARMS_PRESENT_XUPS: 2,
+                f"{XUPS_ROW}1": INFO,
+                f"{XUPS_ROW}2": FAULT,
+            },
+            True,
+            id="fault",
+        ),
+        pytest.param(
+            {
+                SNMP_OID_ALARMS_PRESENT_XUPS: 1,
+                f"{XUPS_ROW}1": ".1.3.6.1.4.1.534.1.7.999",
+            },
+            True,
+            id="unknown-oid",
+        ),
+        pytest.param(
+            {SNMP_OID_ALARMS_PRESENT: 1, f"{STD_ROW}1": "1.3.6.1.2.1.33.1.6.3.24"},
+            False,
+            id="standard-test-in-progress",
         ),
     ],
 )
 async def test_alarm_active_binary_sensor(
-    coordinator: SnmpCoordinator, data: dict[str, int], expected: bool | None
+    coordinator: SnmpCoordinator, data: dict[str, int | str], expected: bool | None
 ) -> None:
-    """The binary sensor is on for any count above zero, not only for 1."""
+    """Only fault rows turn the sensor on, and no counts leave it unknown."""
     coordinator.data.update(data)
     with (
         patch(
@@ -87,7 +113,7 @@ async def test_alarm_active_binary_sensor(
 
 
 async def test_alarm_sensors(coordinator: SnmpCoordinator) -> None:
-    """The count sensor and the decoded sensor report the table contents."""
+    """The decoded sensor lists every alarm, informational or not."""
     coordinator.data.update(
         {
             SNMP_OID_ALARMS_PRESENT_XUPS: 2,
@@ -95,7 +121,6 @@ async def test_alarm_sensors(coordinator: SnmpCoordinator) -> None:
             f"{XUPS_ROW}37": "1.3.6.1.4.1.534.1.7.17",
         }
     )
-    assert SnmpAlarmsPresentSensorEntity(coordinator).native_value is None
     sensor = SnmpActiveAlarmsSensorEntity(coordinator)
     assert sensor.native_value == 2
     assert sensor.extra_state_attributes["alarms"] == [

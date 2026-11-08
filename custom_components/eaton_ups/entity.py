@@ -10,6 +10,8 @@ from .const import (
     ATTR_HOST,
     DOMAIN,
     MANUFACTURER,
+    SNMP_OID_ALARM_DESCR,
+    SNMP_OID_ALARM_DESCR_XUPS,
     SNMP_OID_BATTERY_CAPACITY,
     SNMP_OID_IDENT_FIRMWARE_VERSION,
     SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS,
@@ -21,6 +23,26 @@ from .const import (
     SNMP_OID_IDENT_SYSTEM_NAME,
 )
 from .coordinator import SnmpCoordinator
+
+
+def active_alarm_oids(data: dict) -> list[str]:
+    """Return the alarm OIDs of all active alarm rows, without repeats.
+
+    Both alarm tables are read and merged, as a device may fill either or both.
+    """
+    alarm_oids: list[str] = []
+    for descr_oid in (SNMP_OID_ALARM_DESCR, SNMP_OID_ALARM_DESCR_XUPS):
+        prefix = descr_oid.replace("index", "")
+        # Row order follows the OID index, not string order, so sort numerically.
+        rows = sorted(
+            (oid for oid in data if oid.startswith(prefix)),
+            key=lambda oid: int(oid[len(prefix) :]),
+        )
+        for oid in rows:
+            alarm_oid = str(data[oid]).lstrip(".")
+            if alarm_oid not in alarm_oids:
+                alarm_oids.append(alarm_oid)
+    return alarm_oids
 
 
 class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
