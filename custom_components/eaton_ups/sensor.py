@@ -24,6 +24,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util.dt import get_time_zone
 
 from .const import (
+    ALARM_NAMES,
+    SNMP_OID_ALARMS_PRESENT_XUPS,
     SNMP_OID_BATTERY_ABM_STATUS,
     SNMP_OID_BATTERY_CAPACITY,
     SNMP_OID_BATTERY_CURRENT,
@@ -31,6 +33,7 @@ from .const import (
     SNMP_OID_BATTERY_REMAINING,
     SNMP_OID_BATTERY_TEST_STATUS,
     SNMP_OID_BATTERY_VOLTAGE,
+    SNMP_OID_CONFIG_LOW_BATTERY_TIME,
     SNMP_OID_INPUT_CURRENT,
     SNMP_OID_INPUT_NAME,
     SNMP_OID_INPUT_NUM_PHASES,
@@ -55,7 +58,7 @@ from .const import (
     OutputStatus,
 )
 from .coordinator import SnmpCoordinator
-from .entity import SnmpEntity
+from .entity import SnmpEntity, active_alarm_oids
 
 PARALLEL_UPDATES = 0
 SCAN_INTERVAL = timedelta(seconds=60)
@@ -80,6 +83,8 @@ async def async_setup_entry(
         SnmpOutputSourceSensorEntity(coordinator),
         SnmpOutputCumulativeEnergySensorEntity(coordinator),
         SnmpOutputStatusSensorEntity(coordinator),
+        SnmpActiveAlarmsSensorEntity(coordinator),
+        SnmpConfigLowBatteryTimeSensorEntity(coordinator),
     ]
 
     for index in range(
@@ -100,6 +105,20 @@ async def async_setup_entry(
         entities.append(SnmpOutputLoadSensorEntity(coordinator, index))
 
     async_add_entities(entities)
+
+
+def decode_alarms(data: dict) -> list[str] | None:
+    """Return the readable names of the active alarms found in the SNMP data.
+
+    Unknown alarm OIDs are kept as the raw OID so no alarm is hidden. Returns
+    None when the alarm state is unknown.
+    """
+    alarm_oids = active_alarm_oids(data)
+    if alarm_oids is None:
+        return None
+    names = [ALARM_NAMES.get(oid, oid) for oid in alarm_oids]
+    # The two MIBs name the same condition with different OIDs; list it once.
+    return list(dict.fromkeys(names))
 
 
 class SnmpSensorEntity(SnmpEntity, SensorEntity):
@@ -369,3 +388,41 @@ class SnmpOutputStatusSensorEntity(SnmpOutputSensorEntity):
 
     _name_suffix = "Status"
     _value_oid = SNMP_OID_OUTPUT_STATUS
+
+
+class SnmpActiveAlarmsSensorEntity(SnmpSensorEntity):
+    """Representation of the decoded active alarms of a Eaton UPS."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    _name_prefix = "Active"
+    _name_suffix = "Alarms"
+    # Only used for the unique id; the value comes from the alarm table rows.
+    _value_oid = SNMP_OID_ALARMS_PRESENT_XUPS
+
+    def _read_value(self) -> int | None:
+        """Return the number of distinct active alarms, None if unknown."""
+        alarms = self._alarms
+        return None if alarms is None else len(alarms)
+
+    @property
+    def _alarms(self) -> list[str] | None:
+        """Return the names of the active alarms."""
+        return decode_alarms(self.coordinator.data)
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes, including the alarm names."""
+        return {**super().extra_state_attributes, "alarms": self._alarms}
+
+
+class SnmpConfigLowBatteryTimeSensorEntity(SnmpSensorEntity):
+    """Representation of the configured low battery runtime of a Eaton UPS."""
+
+    _attr_device_class = SensorDeviceClass.DURATION
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = UnitOfTime.MINUTES
+
+    _name_prefix = "Low Battery"
+    _name_suffix = "Time"
+    _value_oid = SNMP_OID_CONFIG_LOW_BATTERY_TIME

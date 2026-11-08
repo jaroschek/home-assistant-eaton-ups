@@ -100,6 +100,99 @@ SNMP_OID_OUTPUT_SOURCE = "1.3.6.1.4.1.534.1.4.5.0"
 SNMP_OID_OUTPUT_CUMULATIVE_ENERGY = "1.3.6.1.4.1.534.1.4.7.0"
 SNMP_OID_OUTPUT_STATUS = "1.3.6.1.4.1.534.1.4.10.0"
 
+# Alarm counts and tables. UPS-MIB (RFC 1628) and the Eaton XUPS-MIB each define
+# an active alarm table; a device may populate either or both.
+SNMP_OID_ALARMS_PRESENT = "1.3.6.1.2.1.33.1.6.1.0"
+SNMP_OID_ALARM_DESCR = "1.3.6.1.2.1.33.1.6.2.1.2.index"
+SNMP_OID_ALARMS_PRESENT_XUPS = "1.3.6.1.4.1.534.1.7.1.0"
+SNMP_OID_ALARM_DESCR_XUPS = "1.3.6.1.4.1.534.1.7.2.1.2.index"
+SNMP_OID_CONFIG_LOW_BATTERY_TIME = "1.3.6.1.2.1.33.1.9.7.0"
+
+# upsAlarmDescr / xupsAlarmDescr hold the OID of a well-known alarm; map them to
+# readable names. Unknown OIDs are shown as the raw OID by the sensor.
+ALARM_NAMES: dict[str, str] = {
+    # RFC 1628 upsWellKnownAlarms (1.3.6.1.2.1.33.1.6.3.N)
+    **{
+        f"1.3.6.1.2.1.33.1.6.3.{number}": name
+        for number, name in enumerate(
+            (
+                "Battery Bad",
+                "On Battery",
+                "Low Battery",
+                "Depleted Battery",
+                "Temperature Bad",
+                "Input Bad",
+                "Output Bad",
+                "Output Overload",
+                "On Bypass",
+                "Bypass Bad",
+                "Output Off As Requested",
+                "UPS Off As Requested",
+                "Charger Failed",
+                "UPS Output Off",
+                "UPS System Off",
+                "Fan Failure",
+                "Fuse Failure",
+                "General Fault",
+                "Diagnostic Test Failed",
+                "Communications Lost",
+                "Awaiting Power",
+                "Shutdown Pending",
+                "Shutdown Imminent",
+                "Test In Progress",
+            ),
+            start=1,
+        )
+    },
+    # Eaton XUPS-MIB well-known alarms (1.3.6.1.4.1.534.1.7.N)
+    "1.3.6.1.4.1.534.1.7.3": "On Battery",
+    "1.3.6.1.4.1.534.1.7.4": "Low Battery",
+    "1.3.6.1.4.1.534.1.7.5": "Utility Power Restored",
+    "1.3.6.1.4.1.534.1.7.6": "Return From Low Battery",
+    "1.3.6.1.4.1.534.1.7.7": "Output Overload",
+    "1.3.6.1.4.1.534.1.7.8": "Internal Failure",
+    "1.3.6.1.4.1.534.1.7.9": "Battery Discharged",
+    "1.3.6.1.4.1.534.1.7.10": "Inverter Failure",
+    "1.3.6.1.4.1.534.1.7.11": "On Bypass",
+    "1.3.6.1.4.1.534.1.7.12": "Bypass Not Available",
+    "1.3.6.1.4.1.534.1.7.13": "Output Off",
+    "1.3.6.1.4.1.534.1.7.14": "Input Failure",
+    "1.3.6.1.4.1.534.1.7.15": "Building Alarm",
+    "1.3.6.1.4.1.534.1.7.16": "Shutdown Imminent",
+    "1.3.6.1.4.1.534.1.7.17": "On Inverter",
+    "1.3.6.1.4.1.534.1.7.20": "Breaker Open",
+    "1.3.6.1.4.1.534.1.7.21": "Alarm Entry Added",
+    "1.3.6.1.4.1.534.1.7.22": "Alarm Entry Removed",
+    "1.3.6.1.4.1.534.1.7.23": "Battery Bad",
+    "1.3.6.1.4.1.534.1.7.24": "Output Off As Requested",
+    "1.3.6.1.4.1.534.1.7.25": "Diagnostic Test Failed",
+    "1.3.6.1.4.1.534.1.7.26": "Communications Lost",
+    "1.3.6.1.4.1.534.1.7.27": "Shutdown Pending",
+    "1.3.6.1.4.1.534.1.7.28": "Test In Progress",
+    "1.3.6.1.4.1.534.1.7.29": "Ambient Temperature Bad",
+    "1.3.6.1.4.1.534.1.7.30": "Loss Of Redundancy",
+}
+
+# Alarm rows that report a state or event rather than a fault. The UPS lists
+# them in its alarm table during normal operation (for example "On Inverter"
+# is normal on a double-conversion UPS), so they must not raise a problem.
+# Anything not listed here, including unknown OIDs, counts as a fault.
+ALARMS_INFORMATIONAL: frozenset[str] = frozenset(
+    {
+        # Normal state of a double-conversion UPS.
+        "1.3.6.1.4.1.534.1.7.17",  # On Inverter
+        # Recovery events, not faults.
+        "1.3.6.1.4.1.534.1.7.5",  # Utility Power Restored
+        "1.3.6.1.4.1.534.1.7.6",  # Return From Low Battery
+        # Bookkeeping events about the alarm table itself.
+        "1.3.6.1.4.1.534.1.7.21",  # Alarm Entry Added
+        "1.3.6.1.4.1.534.1.7.22",  # Alarm Entry Removed
+        # A self-test running is expected activity.
+        "1.3.6.1.4.1.534.1.7.28",  # Test In Progress
+        "1.3.6.1.2.1.33.1.6.3.24",  # Test In Progress (UPS-MIB)
+    }
+)
+
 
 class YesNo(Enum):
     """Mapping for yes/no."""

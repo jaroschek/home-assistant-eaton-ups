@@ -14,6 +14,10 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .api import SnmpApi
 from .const import (
     DOMAIN,
+    SNMP_OID_ALARM_DESCR,
+    SNMP_OID_ALARM_DESCR_XUPS,
+    SNMP_OID_ALARMS_PRESENT,
+    SNMP_OID_ALARMS_PRESENT_XUPS,
     SNMP_OID_BATTERY_ABM_STATUS,
     SNMP_OID_BATTERY_AGED,
     SNMP_OID_BATTERY_CAPACITY,
@@ -25,6 +29,7 @@ from .const import (
     SNMP_OID_BATTERY_REMAINING,
     SNMP_OID_BATTERY_TEST_STATUS,
     SNMP_OID_BATTERY_VOLTAGE,
+    SNMP_OID_CONFIG_LOW_BATTERY_TIME,
     SNMP_OID_IDENT_FIRMWARE_VERSION,
     SNMP_OID_IDENT_FIRMWARE_VERSION_XUPS,
     SNMP_OID_IDENT_PART_NUMBER,
@@ -97,6 +102,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
             SNMP_OID_BATTERY_AGED,
             SNMP_OID_BATTERY_LOW_CAPACITY,
             SNMP_OID_BATTERY_TEST_STATUS,
+            SNMP_OID_ALARMS_PRESENT,
+            SNMP_OID_ALARMS_PRESENT_XUPS,
+            SNMP_OID_CONFIG_LOW_BATTERY_TIME,
         ]
 
     async def _update_data(self) -> dict:
@@ -132,6 +140,19 @@ class SnmpCoordinator(DataUpdateCoordinator):
                     output_count,
                 ):
                     data.update(result)
+
+            # The alarm tables are empty when no alarm is active, so only read
+            # as many rows as the device reports.
+            for count_oid, descr_oid in (
+                (SNMP_OID_ALARMS_PRESENT, SNMP_OID_ALARM_DESCR),
+                (SNMP_OID_ALARMS_PRESENT_XUPS, SNMP_OID_ALARM_DESCR_XUPS),
+            ):
+                alarm_count = data.get(count_oid, 0)
+                if alarm_count > 0:
+                    for result in await self._api.get_bulk(
+                        [descr_oid.replace("index", "")], alarm_count
+                    ):
+                        data.update(result)
 
         except (RuntimeError, PySnmpError) as err:
             raise UpdateFailed(err) from err
