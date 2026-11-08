@@ -27,6 +27,8 @@ XUPS_ROW = SNMP_OID_ALARM_DESCR_XUPS.replace("index", "")
 def test_decode_known_and_unknown_alarms() -> None:
     """Known alarm OIDs get names; unknown ones keep their raw OID."""
     data = {
+        SNMP_OID_ALARMS_PRESENT: 1,
+        SNMP_OID_ALARMS_PRESENT_XUPS: 3,
         f"{STD_ROW}1": "1.3.6.1.2.1.33.1.6.3.3",
         f"{XUPS_ROW}10": "1.3.6.1.4.1.534.1.7.17",
         f"{XUPS_ROW}2": ".1.3.6.1.4.1.534.1.7.6",
@@ -43,10 +45,23 @@ def test_decode_known_and_unknown_alarms() -> None:
 def test_decode_deduplicates_across_tables() -> None:
     """An alarm reported by both tables is listed once."""
     data = {
+        SNMP_OID_ALARMS_PRESENT: 1,
+        SNMP_OID_ALARMS_PRESENT_XUPS: 1,
         f"{STD_ROW}1": "1.3.6.1.2.1.33.1.6.3.2",
         f"{XUPS_ROW}1": "1.3.6.1.4.1.534.1.7.3",
     }
     assert decode_alarms(data) == ["On Battery"]
+
+
+def test_decode_shutdown_pending_in_both_tables() -> None:
+    """Equivalent conditions in the two MIBs share one name and count once."""
+    data = {
+        SNMP_OID_ALARMS_PRESENT: 1,
+        SNMP_OID_ALARMS_PRESENT_XUPS: 1,
+        f"{STD_ROW}1": "1.3.6.1.2.1.33.1.6.3.22",
+        f"{XUPS_ROW}1": "1.3.6.1.4.1.534.1.7.27",
+    }
+    assert decode_alarms(data) == ["Shutdown Pending"]
 
 
 def test_decode_no_alarms() -> None:
@@ -62,6 +77,12 @@ INFO = "1.3.6.1.4.1.534.1.7.17"
     ("data", "expected"),
     [
         pytest.param({}, None, id="unsupported"),
+        pytest.param({SNMP_OID_ALARMS_PRESENT_XUPS: 1}, None, id="no-rows"),
+        pytest.param(
+            {SNMP_OID_ALARMS_PRESENT_XUPS: 2, f"{XUPS_ROW}1": FAULT},
+            None,
+            id="partial-rows",
+        ),
         pytest.param({SNMP_OID_ALARMS_PRESENT: 0}, False, id="none"),
         pytest.param(
             {
@@ -140,3 +161,26 @@ async def test_alarm_tables_read_only_when_present(
     await coordinator.async_refresh()
     api.get_bulk.assert_called_once_with([XUPS_ROW], 1)
     assert coordinator.data[f"{XUPS_ROW}5"] == "1.3.6.1.4.1.534.1.7.3"
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        pytest.param({}, None, id="no-counts"),
+        pytest.param({SNMP_OID_ALARMS_PRESENT: 0}, 0, id="empty-table"),
+        pytest.param({SNMP_OID_ALARMS_PRESENT_XUPS: 1}, None, id="no-rows"),
+        pytest.param(
+            {SNMP_OID_ALARMS_PRESENT_XUPS: 2, f"{XUPS_ROW}1": FAULT},
+            None,
+            id="partial-rows",
+        ),
+    ],
+)
+async def test_active_alarms_unknown_states(
+    coordinator: SnmpCoordinator, data: dict[str, int | str], expected: int | None
+) -> None:
+    """Active Alarms is unknown without counts or with incomplete rows."""
+    coordinator.data.update(data)
+    sensor = SnmpActiveAlarmsSensorEntity(coordinator)
+    assert sensor.native_value == expected
+    assert sensor.extra_state_attributes["alarms"] == ([] if expected == 0 else None)

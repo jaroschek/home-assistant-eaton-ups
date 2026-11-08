@@ -15,7 +15,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     ALARMS_INFORMATIONAL,
     SNMP_OID_ALARMS_PRESENT,
-    SNMP_OID_ALARMS_PRESENT_XUPS,
     SNMP_OID_BATTERY_AGED,
     SNMP_OID_BATTERY_FAILURE,
     SNMP_OID_BATTERY_LOW_CAPACITY,
@@ -132,20 +131,14 @@ class SnmpAlarmActiveSensorEntity(SnmpBinarySensorEntity):
 
     def update_atert(self) -> None:
         """Derive the state from the alarm rows, then update the alert."""
-        counts_reported = any(
-            isinstance(self.coordinator.data.get(oid), int)
-            for oid in (SNMP_OID_ALARMS_PRESENT, SNMP_OID_ALARMS_PRESENT_XUPS)
-        )
-        # Unknown means neither alarm table is supported. Informational rows
-        # (normal states and events) are not faults; unknown alarm OIDs count as
-        # faults so a real alarm is never hidden.
-        if not counts_reported:
+        # Informational rows (normal states and events) are not faults; unknown
+        # alarm OIDs count as faults so a real alarm is never hidden. An unknown
+        # (None) state leaves any existing notification untouched.
+        alarm_oids = active_alarm_oids(self.coordinator.data)
+        if alarm_oids is None:
             self._attr_native_value = None
         else:
             self._attr_native_value = int(
-                any(
-                    oid not in ALARMS_INFORMATIONAL
-                    for oid in active_alarm_oids(self.coordinator.data)
-                )
+                any(oid not in ALARMS_INFORMATIONAL for oid in alarm_oids)
             )
         super().update_atert()

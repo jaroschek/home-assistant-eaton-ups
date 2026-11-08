@@ -167,7 +167,7 @@ ALARM_NAMES: dict[str, str] = {
     "1.3.6.1.4.1.534.1.7.24": "Output Off As Requested",
     "1.3.6.1.4.1.534.1.7.25": "Diagnostic Test Failed",
     "1.3.6.1.4.1.534.1.7.26": "Communications Lost",
-    "1.3.6.1.4.1.534.1.7.27": "UPS Shutdown Pending",
+    "1.3.6.1.4.1.534.1.7.27": "Shutdown Pending",
     "1.3.6.1.4.1.534.1.7.28": "Test In Progress",
     "1.3.6.1.4.1.534.1.7.29": "Ambient Temperature Bad",
     "1.3.6.1.4.1.534.1.7.30": "Loss Of Redundancy",

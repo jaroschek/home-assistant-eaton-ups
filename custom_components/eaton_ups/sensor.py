@@ -107,12 +107,16 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-def decode_alarms(data: dict) -> list[str]:
+def decode_alarms(data: dict) -> list[str] | None:
     """Return the readable names of the active alarms found in the SNMP data.
 
-    Unknown alarm OIDs are kept as the raw OID so no alarm is hidden.
+    Unknown alarm OIDs are kept as the raw OID so no alarm is hidden. Returns
+    None when the alarm state is unknown.
     """
-    names = [ALARM_NAMES.get(oid, oid) for oid in active_alarm_oids(data)]
+    alarm_oids = active_alarm_oids(data)
+    if alarm_oids is None:
+        return None
+    names = [ALARM_NAMES.get(oid, oid) for oid in alarm_oids]
     # The two MIBs name the same condition with different OIDs; list it once.
     return list(dict.fromkeys(names))
 
@@ -396,12 +400,13 @@ class SnmpActiveAlarmsSensorEntity(SnmpSensorEntity):
     # Only used for the unique id; the value comes from the alarm table rows.
     _value_oid = SNMP_OID_ALARMS_PRESENT_XUPS
 
-    def _read_value(self) -> int:
-        """Return the number of distinct active alarms."""
-        return len(self._alarms)
+    def _read_value(self) -> int | None:
+        """Return the number of distinct active alarms, None if unknown."""
+        alarms = self._alarms
+        return None if alarms is None else len(alarms)
 
     @property
-    def _alarms(self) -> list[str]:
+    def _alarms(self) -> list[str] | None:
         """Return the names of the active alarms."""
         return decode_alarms(self.coordinator.data)
 
