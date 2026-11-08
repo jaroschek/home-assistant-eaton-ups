@@ -13,6 +13,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    SNMP_OID_ALARMS_PRESENT,
+    SNMP_OID_ALARMS_PRESENT_XUPS,
     SNMP_OID_BATTERY_AGED,
     SNMP_OID_BATTERY_FAILURE,
     SNMP_OID_BATTERY_LOW_CAPACITY,
@@ -35,6 +37,7 @@ async def async_setup_entry(
         SnmpBatteryNotPresentSensorEntity(coordinator),
         SnmpBatteryAgedSensorEntity(coordinator),
         SnmpBatteryLowCapacitySensorEntity(coordinator),
+        SnmpAlarmActiveSensorEntity(coordinator),
     ]
 
     async_add_entities(entities)
@@ -117,3 +120,30 @@ class SnmpBatteryLowCapacitySensorEntity(SnmpBatteryBinarySensorEntity):
 
     _name_suffix = "Low Capacity"
     _value_oid = SNMP_OID_BATTERY_LOW_CAPACITY
+
+
+class SnmpAlarmActiveSensorEntity(SnmpBinarySensorEntity):
+    """Representation of a Eaton UPS active alarm binary sensor."""
+
+    _name_prefix = "Alarm"
+    _name_suffix = "Active"
+    _value_oid = SNMP_OID_ALARMS_PRESENT
+
+    def update_atert(self) -> None:
+        """Combine both alarm counts, then update the alert."""
+        counts = [
+            value
+            for oid in (SNMP_OID_ALARMS_PRESENT, SNMP_OID_ALARMS_PRESENT_XUPS)
+            if isinstance(value := self.coordinator.data.get(oid), int)
+        ]
+        # A device may implement only one of the two alarm tables, so unknown
+        # means neither count was reported.
+        self._attr_native_value = sum(counts) if counts else None
+        super().update_atert()
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if any alarm is active."""
+        if self._attr_native_value is None:
+            return None
+        return self._attr_native_value > 0
